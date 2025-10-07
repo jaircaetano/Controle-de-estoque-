@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Rastreamento de Equipamentos de TI</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #34495e;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+        }
+        
+        .tabs {
+            display: flex;
+            background-color: white;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .tab.active {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            background-color: white;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        button {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+        }
+        
+        .btn-success:hover {
+            background-color: #219653;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: var(--light);
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-em-uso {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-field-service {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-disponivel {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-atrasado {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .alert {
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .search-box {
+            margin-bottom: 20px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background-color: white;
+            border-radius: 5px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .overdue {
+            color: var(--danger);
+        }
+        
+        .due-soon {
+            color: var(--warning);
+        }
+        
+        .on-time {
+            color: var(--success);
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .tabs {
+                flex-wrap: wrap;
+            }
+            
+            .tab {
+                flex: 1;
+                min-width: 120px;
+                text-align: center;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <h1>Sistema de Rastreamento de Equipamentos de TI</h1>
+                <div id="current-date"></div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Total de Equipamentos</div>
+                <div class="stat-value" id="total-equipment">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Em Uso</div>
+                <div class="stat-value" id="in-use">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Com Field Service</div>
+                <div class="stat-value" id="with-field-service">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Atrasados</div>
+                <div class="stat-value overdue" id="overdue">0</div>
+            </div>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="equipment-list">Lista de Equipamentos</div>
+            <div class="tab" data-tab="add-equipment">Adicionar Equipamento</div>
+            <div class="tab" data-tab="check-out">Registrar Saída</div>
+            <div class="tab" data-tab="check-in">Registrar Retorno</div>
+            <div class="tab" data-tab="history">Histórico</div>
+        </div>
+        
+        <div id="equipment-list" class="tab-content active">
+            <div class="search-box">
+                <input type="text" id="search-equipment" placeholder="Pesquisar equipamentos...">
+            </div>
+            <table id="equipment-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tipo</th>
+                        <th>Modelo</th>
+                        <th>Número de Série</th>
+                        <th>Status</th>
+                        <th>Localização</th>
+                        <th>Prazo</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="equipment-table-body">
+                    <!-- Os dados dos equipamentos serão inseridos aqui via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div id="add-equipment" class="tab-content">
+            <h2>Adicionar Novo Equipamento</h2>
+            <form id="add-equipment-form">
+                <div class="form-group">
+                    <label for="equipment-type">Tipo de Equipamento</label>
+                    <select id="equipment-type" required>
+                        <option value="">Selecione o tipo</option>
+                        <option value="Laptop">Laptop</option>
+                        <option value="Desktop">Desktop</option>
+                        <option value="Tablet">Tablet</option>
+                        <option value="Smartphone">Smartphone</option>
+                        <option value="Monitor">Monitor</option>
+                        <option value="Impressora">Impressora</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="equipment-model">Modelo</label>
+                    <input type="text" id="equipment-model" required>
+                </div>
+                <div class="form-group">
+                    <label for="serial-number">Número de Série</label>
+                    <input type="text" id="serial-number" required>
+                </div>
+                <div class="form-group">
+                    <label for="initial-status">Status Inicial</label>
+                    <select id="initial-status">
+                        <option value="Disponível">Disponível</option>
+                        <option value="Em Uso">Em Uso</option>
+                        <option value="Field Service">Field Service</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-success">Adicionar Equipamento</button>
+            </form>
+        </div>
+        
+        <div id="check-out" class="tab-content">
+            <h2>Registrar Saída de Equipamento</h2>
+            <form id="check-out-form">
+                <div class="form-group">
+                    <label for="checkout-equipment">Equipamento</label>
+                    <select id="checkout-equipment" required>
+                        <option value="">Selecione o equipamento</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="checkout-user">Responsável</label>
+                    <input type="text" id="checkout-user" required>
+                </div>
+                <div class="form-group">
+                    <label for="checkout-department">Departamento/Projeto</label>
+                    <input type="text" id="checkout-department" required>
+                </div>
+                <div class="form-group">
+                    <label for="checkout-deadline">Prazo de Devolução</label>
+                    <!-- AQUI o campo de data, que será configurado com a data mínima via JS -->
+                    <input type="date" id="checkout-deadline" required>
+                </div>
+                <div class="form-group">
+                    <label for="checkout-notes">Observações</label>
+                    <textarea id="checkout-notes" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn-success">Registrar Saída</button>
+            </form>
+        </div>
+        
+        <div id="check-in" class="tab-content">
+            <h2>Registrar Retorno de Equipamento</h2>
+            <form id="check-in-form">
+                <div class="form-group">
+                    <label for="checkin-equipment">Equipamento</label>
+                    <select id="checkin-equipment" required>
+                        <option value="">Selecione o equipamento</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="checkin-condition">Condição do Equipamento</label>
+                    <select id="checkin-condition" required>
+                        <option value="Excelente">Excelente</option>
+                        <option value="Boa">Boa</option>
+                        <option value="Regular">Regular</option>
+                        <option value="Necessita Manutenção">Necessita Manutenção</option>
+                        <option value="Danificado">Danificado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="checkin-notes">Observações</label>
+                    <textarea id="checkin-notes" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn-success">Registrar Retorno</button>
+            </form>
+        </div>
+        
+        <div id="history" class="tab-content">
+            <h2>Histórico de Movimentações</h2>
+            <div class="search-box">
+                <input type="text" id="search-history" placeholder="Pesquisar no histórico...">
+            </div>
+            <table id="history-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Equipamento</th>
+                        <th>Tipo</th>
+                        <th>Responsável</th>
+                        <th>Detalhes</th>
+                    </tr>
+                </thead>
+                <tbody id="history-table-body">
+                    <!-- O histórico será inserido aqui via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Dados iniciais (simulando um banco de dados com localStorage)
+        // ATENÇÃO: Embora eu esteja usando o localStorage, em um ambiente de produção real, 
+        // seria melhor usar um banco de dados como o Firestore para persistência de dados.
+        let equipment = JSON.parse(localStorage.getItem('equipment')) || [];
+        let history = JSON.parse(localStorage.getItem('history')) || [];
+        
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            // NOVO: Adicionar data mínima para Prazo de Devolução (não permitir datas passadas)
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('checkout-deadline').setAttribute('min', today);
+
+            // Atualizar data atual
+            document.getElementById('current-date').textContent = new Date().toLocaleDateString('pt-BR');
+            
+            // Inicializar a interface
+            updateEquipmentList();
+            updateStats();
+            updateHistory();
+            populateCheckoutSelect();
+            populateCheckinSelect();
+            
+            // Configurar abas
+            setupTabs();
+            
+            // Configurar formulários
+            setupForms();
+            
+            // Configurar busca
+            setupSearch();
+        });
+        
+        // Configurar abas
+        function setupTabs() {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Remover classe active de todas as abas e conteúdos
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Adicionar classe active à aba clicada
+                    this.classList.add('active');
+                    
+                    // Mostrar o conteúdo correspondente
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                    
+                    // Re-popular selects ao mudar para as abas de Saída/Retorno
+                    if (tabId === 'check-out') populateCheckoutSelect();
+                    if (tabId === 'check-in') populateCheckinSelect();
+                });
+            });
+        }
+        
+        // Configurar formulários
+        function setupForms() {
+            // Formulário de adicionar equipamento
+            document.getElementById('add-equipment-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const type = document.getElementById('equipment-type').value;
+                const model = document.getElementById('equipment-model').value;
+                const serial = document.getElementById('serial-number').value;
+                const status = document.getElementById('initial-status').value;
+                
+                addEquipment(type, model, serial, status);
+                
+                // Limpar formulário
+                this.reset();
+            });
+            
+            // Formulário de saída
+            document.getElementById('check-out-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const equipmentId = document.getElementById('checkout-equipment').value;
+                const user = document.getElementById('checkout-user').value;
+                const department = document.getElementById('checkout-department').value;
+                const deadline = document.getElementById('checkout-deadline').value;
+                const notes = document.getElementById('checkout-notes').value;
+                
+                // Usar um modal personalizado em vez de alert/confirm
+                showCustomAlert('Saída registrada com sucesso!');
+                checkOutEquipment(equipmentId, user, department, deadline, notes);
+                
+                // Limpar formulário
+                this.reset();
+            });
+            
+            // Formulário de retorno
+            document.getElementById('check-in-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const equipmentId = document.getElementById('checkin-equipment').value;
+                const condition = document.getElementById('checkin-condition').value;
+                const notes = document.getElementById('checkin-notes').value;
+                
+                showCustomAlert('Retorno registrado com sucesso!');
+                checkInEquipment(equipmentId, condition, notes);
+                
+                // Limpar formulário
+                this.reset();
+            });
+        }
+        
+        // Configurar busca
+        function setupSearch() {
+            // Busca na lista de equipamentos
+            document.getElementById('search-equipment').addEventListener('input', function() {
+                updateEquipmentList(this.value);
+            });
+            
+            // Busca no histórico
+            document.getElementById('search-history').addEventListener('input', function() {
+                updateHistory(this.value);
+            });
+        }
+        
+        // Adicionar equipamento
+        function addEquipment(type, model, serial, status) {
+            const newEquipment = {
+                id: generateId(),
+                type: type,
+                model: model,
+                serial: serial,
+                status: status,
+                location: status === 'Disponível' ? 'Estoque' : (status === 'Field Service' ? 'Em Trânsito' : ''),
+                currentUser: '',
+                department: '',
+                checkoutDate: '',
+                deadline: '',
+                condition: 'Novo'
+            };
+            
+            equipment.push(newEquipment);
+            saveData();
+            
+            // Adicionar ao histórico
+            addHistory(newEquipment.id, 'Adicionado', `Equipamento ${type} - ${model} adicionado ao sistema. Status inicial: ${status}`);
+            
+            // Atualizar interface
+            updateEquipmentList();
+            updateStats();
+            populateCheckoutSelect();
+            populateCheckinSelect();
+            
+            showCustomAlert('Equipamento adicionado com sucesso!');
+        }
+        
+        // Registrar saída
+        function checkOutEquipment(equipmentId, user, department, deadline, notes) {
+            const eq = equipment.find(e => e.id === equipmentId);
+            if (eq) {
+                eq.status = 'Em Uso';
+                eq.currentUser = user;
+                eq.department = department;
+                eq.location = `Em Uso: ${department}`;
+                eq.checkoutDate = new Date().toISOString().split('T')[0];
+                eq.deadline = deadline;
+                
+                saveData();
+                
+                // Adicionar ao histórico
+                addHistory(equipmentId, 'Saída', `Equipamento entregue para ${user} (${department}). Prazo: ${formatDate(deadline)}. ${notes}`, user);
+                
+                // Atualizar interface
+                updateEquipmentList();
+                updateStats();
+                populateCheckoutSelect();
+                populateCheckinSelect();
+            }
+        }
+        
+        // Registrar retorno
+        function checkInEquipment(equipmentId, condition, notes) {
+            const eq = equipment.find(e => e.id === equipmentId);
+            if (eq) {
+                // Captura o usuário antes de limpar os dados
+                const formerUser = eq.currentUser;
+                
+                eq.status = 'Disponível';
+                eq.location = 'Estoque';
+                eq.condition = condition;
+                
+                // Adicionar ao histórico
+                addHistory(equipmentId, 'Retorno', `Equipamento retornado por ${formerUser}. Condição: ${condition}. ${notes}`, formerUser);
+                
+                // Limpar dados de empréstimo
+                eq.currentUser = '';
+                eq.department = '';
+                eq.checkoutDate = '';
+                eq.deadline = '';
+                
+                saveData();
+                
+                // Atualizar interface
+                updateEquipmentList();
+                updateStats();
+                populateCheckoutSelect();
+                populateCheckinSelect();
+            }
+        }
+        
+        // Atualizar lista de equipamentos
+        function updateEquipmentList(searchTerm = '') {
+            const tbody = document.getElementById('equipment-table-body');
+            tbody.innerHTML = '';
+            
+            const filteredEquipment = equipment.filter(eq => {
+                if (!searchTerm) return true;
+                
+                const searchLower = searchTerm.toLowerCase();
+                return (
+                    eq.id.toLowerCase().includes(searchLower) ||
+                    eq.type.toLowerCase().includes(searchLower) ||
+                    eq.model.toLowerCase().includes(searchLower) ||
+                    eq.serial.toLowerCase().includes(searchLower) ||
+                    eq.status.toLowerCase().includes(searchLower) ||
+                    (eq.currentUser && eq.currentUser.toLowerCase().includes(searchLower))
+                );
+            });
+            
+            // Ordenar por ID para consistência
+            filteredEquipment.sort((a, b) => a.id.localeCompare(b.id));
+            
+            filteredEquipment.forEach(eq => {
+                const row = document.createElement('tr');
+                
+                // Lógica de atraso
+                const isOverdue = eq.deadline && new Date(eq.deadline) < new Date();
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); 
+                const deadlineDate = eq.deadline ? new Date(eq.deadline) : null;
+
+                let dueSoon = false;
+                if (deadlineDate && !isOverdue) {
+                    const diffTime = Math.abs(deadlineDate - today);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    dueSoon = diffDays <= 3;
+                }
+                
+                let statusClass = '';
+                let statusLabel = eq.status;
+
+                if (eq.status === 'Em Uso') {
+                    statusClass = isOverdue ? 'status-atrasado' : (dueSoon ? 'status-field-service' : 'status-em-uso');
+                    if (isOverdue) statusLabel += ' (Atrasado)';
+                    else if (dueSoon) statusLabel += ' (Prazo Próximo)';
+                }
+                else if (eq.status === 'Field Service') statusClass = 'status-field-service';
+                else if (eq.status === 'Disponível') statusClass = 'status-disponivel';
+                
+                let locationText = eq.currentUser || eq.location;
+                if (!locationText && eq.status === 'Field Service') locationText = 'Em Trânsito/Reparo';
+
+                let deadlineText = '-';
+                let deadlineClass = '';
+                if (eq.deadline) {
+                    deadlineText = formatDate(eq.deadline);
+                    if (isOverdue) deadlineClass = 'overdue';
+                    else if (dueSoon) deadlineClass = 'due-soon';
+                    else deadlineClass = 'on-time';
+                }
+                
+                row.innerHTML = `
+                    <td>${eq.id}</td>
+                    <td>${eq.type}</td>
+                    <td>${eq.model}</td>
+                    <td>${eq.serial}</td>
+                    <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+                    <td>${locationText}</td>
+                    <td class="${deadlineClass}">${deadlineText}</td>
+                    <td>
+                        <button onclick="viewEquipmentDetails('${eq.id}')">Detalhes</button>
+                        ${eq.status !== 'Disponível' ? `<button class="btn-danger" onclick="confirmForceCheckIn('${eq.id}')">Forçar Retorno</button>` : ''}
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Atualizar estatísticas
+        function updateStats() {
+            const total = equipment.length;
+            const inUse = equipment.filter(e => e.status === 'Em Uso').length;
+            const withFieldService = equipment.filter(e => e.status === 'Field Service').length;
+            const overdue = equipment.filter(e => {
+                return e.deadline && e.status === 'Em Uso' && new Date(e.deadline) < new Date();
+            }).length;
+            
+            document.getElementById('total-equipment').textContent = total;
+            document.getElementById('in-use').textContent = inUse;
+            document.getElementById('with-field-service').textContent = withFieldService;
+            document.getElementById('overdue').textContent = overdue;
+            
+            // Adiciona classe de cor para o número de atrasados
+            const overdueElement = document.getElementById('overdue');
+            overdueElement.classList.toggle('overdue', overdue > 0);
+        }
+        
+        // Atualizar histórico
+        function updateHistory(searchTerm = '') {
+            const tbody = document.getElementById('history-table-body');
+            tbody.innerHTML = '';
+            
+            const filteredHistory = history.filter(record => {
+                if (!searchTerm) return true;
+                
+                const searchLower = searchTerm.toLowerCase();
+                return (
+                    record.equipmentId.toLowerCase().includes(searchLower) ||
+                    record.type.toLowerCase().includes(searchLower) ||
+                    record.details.toLowerCase().includes(searchLower) ||
+                    (record.user && record.user.toLowerCase().includes(searchLower))
+                );
+            });
+            
+            // Ordenar por data (mais recente primeiro)
+            filteredHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            filteredHistory.forEach(record => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${formatDateTime(record.date)}</td>
+                    <td>${record.equipmentId}</td>
+                    <td>${record.type}</td>
+                    <td>${record.user || '-'}</td>
+                    <td>${record.details}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Popular select de saída
+        function populateCheckoutSelect() {
+            const select = document.getElementById('checkout-equipment');
+            select.innerHTML = '<option value="">Selecione o equipamento</option>';
+            
+            equipment.filter(e => e.status === 'Disponível').forEach(eq => {
+                const option = document.createElement('option');
+                option.value = eq.id;
+                option.textContent = `${eq.id} - ${eq.type} ${eq.model}`;
+                select.appendChild(option);
+            });
+        }
+        
+        // Popular select de retorno
+        function populateCheckinSelect() {
+            const select = document.getElementById('checkin-equipment');
+            select.innerHTML = '<option value="">Selecione o equipamento</option>';
+            
+            equipment.filter(e => e.status !== 'Disponível').forEach(eq => {
+                const option = document.createElement('option');
+                option.value = eq.id;
+                option.textContent = `${eq.id} - ${eq.type} ${eq.model} (${eq.currentUser || eq.location})`;
+                select.appendChild(option);
+            });
+        }
+        
+        // Adicionar registro ao histórico
+        function addHistory(equipmentId, type, details, user = 'Sistema') {
+            const eq = equipment.find(e => e.id === equipmentId);
+            
+            const record = {
+                date: new Date().toISOString(),
+                equipmentId: equipmentId,
+                type: type,
+                user: user,
+                details: details,
+                equipmentType: eq ? eq.type : 'N/A' // Adicionar tipo para facilitar a busca
+            };
+            
+            history.push(record);
+            saveData();
+            updateHistory(); // Atualiza o histórico após adicionar um novo registro
+        }
+        
+        // Visualizar detalhes do equipamento (usando a função de alerta customizada)
+        function viewEquipmentDetails(id) {
+            const eq = equipment.find(e => e.id === id);
+            if (eq) {
+                let details = `
+                    <h3>Detalhes do Equipamento: ${eq.id}</h3>
+                    <p><strong>Tipo:</strong> ${eq.type}</p>
+                    <p><strong>Modelo:</strong> ${eq.model}</p>
+                    <p><strong>Série:</strong> ${eq.serial}</p>
+                    <p><strong>Status:</strong> <span class="status-badge ${eq.status === 'Em Uso' ? 'status-em-uso' : eq.status === 'Field Service' ? 'status-field-service' : 'status-disponivel'}">${eq.status}</span></p>
+                    <p><strong>Condição:</strong> ${eq.condition}</p>
+                `;
+                
+                if (eq.currentUser) {
+                    details += `
+                        <hr class="my-3">
+                        <p><strong>Responsável:</strong> ${eq.currentUser}</p>
+                        <p><strong>Departamento:</strong> ${eq.department}</p>
+                        <p><strong>Data de Saída:</strong> ${formatDate(eq.checkoutDate)}</p>
+                        <p><strong>Prazo:</strong> <span class="${new Date(eq.deadline) < new Date() ? 'overdue' : 'on-time'}">${formatDate(eq.deadline)}</span></p>
+                    `;
+                } else {
+                    details += `<p><strong>Localização:</strong> ${eq.location}</p>`;
+                }
+                
+                showCustomModal(details, 'Detalhes do Equipamento');
+            }
+        }
+
+        // Confirmação para Forçar Retorno (usando a função de modal customizada)
+        function confirmForceCheckIn(id) {
+            const eq = equipment.find(e => e.id === id);
+            if (!eq) return;
+
+            const content = `
+                <p>Tem certeza que deseja forçar o retorno do equipamento <strong>${eq.id} - ${eq.model}</strong>?</p>
+                <p>O status atual é <strong>${eq.status}</strong>, com o responsável <strong>${eq.currentUser || 'N/A'}</strong>.</p>
+                <p class="text-danger">Esta ação irá marcar o equipamento como Disponível (Estoque).</p>
+            `;
+
+            showCustomConfirmation(content, 'Confirmar Retorno Forçado', () => forceCheckIn(id));
+        }
+
+        // Forçar retorno de equipamento
+        function forceCheckIn(id) {
+            const eq = equipment.find(e => e.id === id);
+            if (eq) {
+                eq.status = 'Disponível';
+                eq.location = 'Estoque';
+                
+                // Adicionar ao histórico
+                addHistory(id, 'Retorno Forçado', `Equipamento retornado forçadamente pelo sistema (Responsável anterior: ${eq.currentUser || 'N/A'})`);
+                
+                // Limpar dados de empréstimo
+                eq.currentUser = '';
+                eq.department = '';
+                eq.checkoutDate = '';
+                eq.deadline = '';
+                
+                saveData();
+                
+                // Atualizar interface
+                updateEquipmentList();
+                updateStats();
+                populateCheckoutSelect();
+                populateCheckinSelect();
+                
+                showCustomAlert('Retorno forçado realizado com sucesso!');
+            }
+        }
+        
+        // Salvar dados no localStorage
+        function saveData() {
+            localStorage.setItem('equipment', JSON.stringify(equipment));
+            localStorage.setItem('history', JSON.stringify(history));
+        }
+        
+        // Gerar ID único
+        function generateId() {
+            // Gera um ID simples e único
+            return 'EQ' + Date.now().toString().slice(-6) + Math.floor(Math.random() * 100);
+        }
+        
+        // Formatar data (DD/MM/AAAA)
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('pt-BR', {timeZone: 'UTC'});
+            } catch {
+                return dateString;
+            }
+        }
+        
+        // Formatar data e hora (DD/MM/AAAA HH:MM:SS)
+        function formatDateTime(dateString) {
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleString('pt-BR');
+            } catch {
+                return dateString;
+            }
+        }
+
+
+        // --- Funções de Modal Customizado (Substituem alert() e confirm()) ---
+
+        // Adiciona a estrutura básica do modal ao corpo do documento
+        function setupModalStructure() {
+            if (document.getElementById('custom-modal-overlay')) return;
+
+            const style = document.createElement('style');
+            style.textContent = `
+                #custom-modal-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.6);
+                    display: none;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 1000;
+                }
+                #custom-modal-content {
+                    background-color: white;
+                    padding: 25px;
+                    border-radius: 8px;
+                    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+                    max-width: 90%;
+                    min-width: 300px;
+                    transform: scale(0.9);
+                    opacity: 0;
+                    transition: all 0.3s ease-in-out;
+                }
+                #custom-modal-overlay.visible #custom-modal-content {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+                #custom-modal-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 15px;
+                    border-bottom: 1px solid #eee;
+                    padding-bottom: 10px;
+                }
+                #custom-modal-header h3 {
+                    margin: 0;
+                    color: var(--primary);
+                    font-size: 1.2rem;
+                }
+                #custom-modal-close {
+                    background: none;
+                    border: none;
+                    font-size: 1.5rem;
+                    cursor: pointer;
+                    color: #7f8c8d;
+                }
+                #custom-modal-close:hover {
+                    color: var(--danger);
+                }
+                #custom-modal-body p {
+                    margin-bottom: 10px;
+                }
+                #custom-modal-footer {
+                    margin-top: 20px;
+                    text-align: right;
+                }
+            `;
+            document.head.appendChild(style);
+
+
+            const modalHTML = `
+                <div id="custom-modal-overlay">
+                    <div id="custom-modal-content">
+                        <div id="custom-modal-header">
+                            <h3 id="custom-modal-title">Alerta</h3>
+                            <button id="custom-modal-close">&times;</button>
+                        </div>
+                        <div id="custom-modal-body"></div>
+                        <div id="custom-modal-footer"></div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+            document.getElementById('custom-modal-close').addEventListener('click', hideCustomModal);
+            document.getElementById('custom-modal-overlay').addEventListener('click', (e) => {
+                if (e.target.id === 'custom-modal-overlay') {
+                    hideCustomModal();
+                }
+            });
+        }
+
+        // Função para mostrar o modal
+        function showCustomModal(bodyContent, title = 'Alerta', footerContent = '') {
+            setupModalStructure();
+            document.getElementById('custom-modal-title').textContent = title;
+            document.getElementById('custom-modal-body').innerHTML = bodyContent;
+            document.getElementById('custom-modal-footer').innerHTML = footerContent;
+            document.getElementById('custom-modal-overlay').classList.add('visible');
+            document.getElementById('custom-modal-overlay').style.display = 'flex';
+        }
+
+        // Função para esconder o modal
+        function hideCustomModal() {
+            const overlay = document.getElementById('custom-modal-overlay');
+            if (overlay) {
+                overlay.classList.remove('visible');
+                // Pequeno delay para a animação
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    document.getElementById('custom-modal-footer').innerHTML = ''; // Limpa botões de confirmação
+                }, 300); 
+            }
+        }
+
+        // Alerta customizado (substitui alert())
+        function showCustomAlert(message, title = 'Notificação do Sistema') {
+            const footer = `<button onclick="hideCustomModal()" class="btn-success">OK</button>`;
+            showCustomModal(`<p>${message}</p>`, title, footer);
+        }
+
+        // Confirmação customizada (substitui confirm())
+        function showCustomConfirmation(message, title, callback) {
+            const confirmBtn = `<button class="btn-success" onclick="executeAndHide(true)">Confirmar</button>`;
+            const cancelBtn = `<button class="btn-danger" onclick="executeAndHide(false)" style="margin-left: 10px;">Cancelar</button>`;
+            
+            showCustomModal(message, title, cancelBtn + confirmBtn);
+
+            // Função auxiliar para executar o callback e esconder o modal
+            window.executeAndHide = function(confirmed) {
+                if (confirmed) {
+                    callback();
+                }
+                delete window.executeAndHide;
+                hideCustomModal();
+            };
+        }
+
+        // Chama a configuração do modal após o DOM carregar
+        document.addEventListener('DOMContentLoaded', setupModalStructure);
+
+        // --- Fim das Funções de Modal Customizado ---
+        
+    </script>
+</body>
+</html>
+
