@@ -65,6 +65,7 @@
             cursor: pointer;
             transition: all 0.3s;
             font-weight: 500;
+            white-space: nowrap; /* Evita quebras de linha em abas */
         }
         
         .tab.active {
@@ -267,6 +268,13 @@
             color: var(--success);
         }
         
+        /* Divisor */
+        .separator {
+            border-top: 2px solid var(--light);
+            margin: 20px 0;
+            padding-top: 10px;
+        }
+
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
@@ -357,7 +365,8 @@
         </div>
         
         <div id="add-equipment" class="tab-content">
-            <h2>Adicionar Novo Equipamento</h2>
+            <!-- 1. Adicionar Equipamento Individual -->
+            <h2>Adicionar Novo Equipamento (Individual)</h2>
             <form id="add-equipment-form">
                 <div class="form-group">
                     <label for="equipment-type">Tipo de Equipamento</label>
@@ -390,6 +399,20 @@
                 </div>
                 <button type="submit" class="btn-success">Adicionar Equipamento</button>
             </form>
+
+            <div class="separator"></div>
+
+            <!-- 2. Importar Equipamentos em Massa (CSV) -->
+            <h2>Importar Equipamentos em Lote (CSV)</h2>
+            <p>Selecione um arquivo CSV com seus equipamentos. O arquivo deve ter as colunas: <strong>Tipo</strong>, <strong>Modelo</strong>, <strong>Número de Série</strong> e <strong>Status Inicial</strong>.</p>
+            <form id="import-csv-form">
+                <div class="form-group">
+                    <label for="csv-file">Arquivo CSV</label>
+                    <input type="file" id="csv-file" accept=".csv" required>
+                </div>
+                <button type="button" class="btn-success" onclick="handleCSVUpload()">Importar do CSV</button>
+            </form>
+
         </div>
         
         <div id="check-out" class="tab-content">
@@ -593,13 +616,19 @@
         
         // Adicionar equipamento
         function addEquipment(type, model, serial, status) {
+            // Verifica se o número de série já existe para evitar duplicatas
+            if (equipment.some(e => e.serial.toUpperCase() === serial.toUpperCase())) {
+                showCustomAlert(`Equipamento com Número de Série "${serial}" já existe e foi ignorado.`, 'Erro de Duplicidade');
+                return;
+            }
+
             const newEquipment = {
                 id: generateId(),
                 type: type,
                 model: model,
                 serial: serial,
                 status: status,
-                location: status === 'Disponível' ? 'Estoque' : (status === 'Field Service' ? 'Em Trânsito' : ''),
+                location: status === 'Disponível' ? 'Estoque' : (status === 'Field Service' ? 'Em Reparo/Trânsito' : ''),
                 currentUser: '',
                 department: '',
                 checkoutDate: '',
@@ -619,9 +648,169 @@
             populateCheckoutSelect();
             populateCheckinSelect();
             
-            showCustomAlert('Equipamento adicionado com sucesso!');
+            return true; // Indica sucesso na adição
         }
-        
+
+        // --- FUNÇÕES DE IMPORTAÇÃO CSV EM MASSA ---
+
+        // Função principal para lidar com o upload do arquivo CSV
+        function handleCSVUpload() {
+            const fileInput = document.getElementById('csv-file');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showCustomAlert('Por favor, selecione um arquivo CSV para importar.', 'Erro');
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                try {
+                    const csvContent = event.target.result;
+                    const result = parseCSV(csvContent);
+                    processImport(result);
+                } catch (error) {
+                    console.error('Erro ao processar o CSV:', error);
+                    showCustomAlert('Ocorreu um erro ao ler o arquivo CSV. Verifique a formatação.', 'Erro de Processamento');
+                }
+            };
+
+            reader.onerror = function() {
+                showCustomAlert('Falha ao ler o arquivo.', 'Erro de Leitura');
+            };
+
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        // Função para analisar o conteúdo do CSV
+        function parseCSV(csvText) {
+            // Detecta o delimitador: , (vírgula) ou ; (ponto e vírgula)
+            const firstLine = csvText.split('\n')[0];
+            const delimiter = firstLine.includes(';') ? ';' : ',';
+            
+            const lines = csvText.split('\n').filter(line => line.trim() !== '');
+            if (lines.length === 0) return { imported: [], errors: [], total: 0 };
+
+            // Funções para limpar e processar a célula
+            const cleanValue = val => val.trim().replace(/^"|"$/g, '').replace(/""/g, '"');
+
+            // Analisa o cabeçalho
+            const header = lines[0].split(delimiter).map(h => cleanValue(h).toUpperCase().replace(/\s/g, '_'));
+            
+            const expectedHeaders = ['TIPO', 'MODELO', 'NÚMERO_DE_SÉRIE', 'STATUS_INICIAL'];
+            const headerMap = {};
+            
+            expectedHeaders.forEach(expected => {
+                const index = header.findIndex(h => h.includes(expected.replace(/_/g, ' ')));
+                if (index !== -1) {
+                    headerMap[expected] = index;
+                } else if (expected === 'NÚMERO_DE_SÉRIE') {
+                    // Tenta 'SERIAL' como alternativa para Número de Série
+                    const serialIndex = header.findIndex(h => h.includes('SERIAL'));
+                    if (serialIndex !== -1) headerMap[expected] = serialIndex;
+                } else if (expected === 'STATUS_INICIAL') {
+                    // Tenta 'STATUS' como alternativa
+                    const statusIndex = header.findIndex(h => h.includes('STATUS'));
+                    if (statusIndex !== -1) headerMap[expected] = statusIndex;
+                }
+            });
+
+            // Valida se todas as colunas essenciais foram encontradas
+            if (Object.keys(headerMap).length !== expectedHeaders.length) {
+                throw new Error(`Cabeçalhos obrigatórios não encontrados. Esperados: ${expectedHeaders.join(', ')}`);
+            }
+
+            const importedData = [];
+            const errors = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const row = lines[i];
+                if (row.trim() === '') continue;
+
+                // Simple split. Para CSV mais complexo, uma biblioteca seria melhor, mas tentaremos
+                // suportar aspas para valores com o delimitador
+                const columns = row.split(delimiter).map(cleanValue);
+
+                const record = {
+                    type: columns[headerMap['TIPO']],
+                    model: columns[headerMap['MODELO']],
+                    serial: columns[headerMap['NÚMERO_DE_SÉRIE']],
+                    status: columns[headerMap['STATUS_INICIAL']],
+                    lineNumber: i + 1
+                };
+
+                // Validação básica de dados
+                if (!record.type || !record.model || !record.serial) {
+                    errors.push(`Linha ${record.lineNumber}: Campos Tipo, Modelo ou Série ausentes.`);
+                    continue;
+                }
+                
+                // Normaliza o status, se não for um dos esperados, usa 'Disponível'
+                const validStatus = ['DISPONÍVEL', 'EM USO', 'FIELD SERVICE'];
+                const statusUpper = record.status.toUpperCase();
+                
+                if (validStatus.includes(statusUpper)) {
+                    record.status = statusUpper.charAt(0) + statusUpper.slice(1).toLowerCase();
+                } else {
+                    record.status = 'Disponível'; // Fallback
+                    errors.push(`Linha ${record.lineNumber}: Status "${record.status}" inválido. Definido como "Disponível".`);
+                }
+
+                importedData.push(record);
+            }
+
+            return { imported: importedData, errors: errors, total: lines.length - 1 };
+        }
+
+        // Função para processar os dados importados e adicioná-los ao sistema
+        function processImport(result) {
+            const { imported, errors, total } = result;
+            let successCount = 0;
+            let failureCount = 0;
+
+            imported.forEach(item => {
+                // A função addEquipment já lida com a validação de duplicidade de serial
+                const added = addEquipment(item.type, item.model, item.serial, item.status);
+                if (added) {
+                    successCount++;
+                } else {
+                    failureCount++; // Falha geralmente devido a duplicidade de serial
+                }
+            });
+
+            // Limpa o campo de arquivo após a importação
+            document.getElementById('csv-file').value = '';
+
+            let summaryMessage = `
+                <p><strong>Total de linhas processadas no arquivo:</strong> ${total}</p>
+                <p style="color: var(--success);"><strong>Equipamentos adicionados com sucesso:</strong> ${successCount}</p>
+                <p style="color: var(--danger);"><strong>Equipamentos ignorados (erros/duplicatas):</strong> ${failureCount + errors.length}</p>
+            `;
+            
+            if (errors.length > 0) {
+                summaryMessage += `
+                    <div style="margin-top: 15px; max-height: 150px; overflow-y: auto; border: 1px solid #ddd; padding: 10px;">
+                        <strong>Detalhes dos Erros de Formatação:</strong>
+                        <ul>
+                            ${errors.map(err => `<li>${err}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            } else if (failureCount > 0) {
+                summaryMessage += `<p style="margin-top: 10px;">As falhas geralmente são devido a **Números de Série duplicados** já existentes no inventário.</p>`;
+            }
+
+
+            showCustomAlert(summaryMessage, `Importação de ${successCount} Equipamentos Concluída`);
+
+            // Força a atualização da interface
+            updateEquipmentList();
+            updateStats();
+        }
+
+        // --- FIM DAS FUNÇÕES DE IMPORTAÇÃO CSV EM MASSA ---
+
         // Registrar saída
         function checkOutEquipment(equipmentId, user, department, deadline, notes) {
             const eq = equipment.find(e => e.id === equipmentId);
@@ -658,7 +847,7 @@
                 eq.condition = condition;
                 
                 // Adicionar ao histórico
-                addHistory(equipmentId, 'Retorno', `Equipamento retornado por ${formerUser}. Condição: ${condition}. ${notes}`, formerUser);
+                addHistory(equipmentId, 'Retorno', `Equipamento retornado por ${formerUser || 'N/A'}. Condição: ${condition}. ${notes}`, formerUser || 'Sistema');
                 
                 // Limpar dados de empréstimo
                 eq.currentUser = '';
@@ -763,6 +952,141 @@
 
             hideCustomModal();
         }
+        
+        // Confirmação para Enviar para Manutenção (Field Service)
+        function confirmMaintenanceRequest(id) {
+            const eq = equipment.find(e => e.id === id);
+            if (!eq) return;
+
+            let content = `
+                <p>Tem certeza que deseja enviar o equipamento <strong>${eq.id} - ${eq.model}</strong> para **Field Service/Manutenção**?</p>
+                <p>O status atual é <strong>${eq.status}</strong>, com o responsável <strong>${eq.currentUser || 'N/A'}</strong>.</p>
+            `;
+            if (eq.status === 'Em Uso') {
+                content += `<p class="text-danger">Esta ação irá **interromper o empréstimo** e marcar o item para manutenção.</p>`;
+            } else {
+                content += `<p>Esta ação irá marcar o equipamento como Field Service (Em Reparo/Trânsito).</p>`;
+            }
+
+            content += `<div class="form-group" style="margin-top: 20px;"><label for="maintenance-notes">Motivo da Manutenção (Obrigatório)</label><textarea id="maintenance-notes" rows="2" required placeholder="Descreva o motivo pelo qual o equipamento está sendo enviado para Field Service."></textarea></div>`;
+            
+            // Usa o modal customizado com botões dinâmicos que chamam a função global
+            showCustomModal(content, 'Confirmar Envio para Manutenção', `
+                <button class="btn-success" onclick="executeMaintenanceAndHide('${id}')">Confirmar Envio</button>
+                <button class="btn-danger" onclick="hideCustomModal()" style="margin-left: 10px;">Cancelar</button>
+            `);
+
+            // Função global temporária para tratar a submissão do modal
+            window.executeMaintenanceAndHide = function(equipmentId) {
+                const notes = document.getElementById('maintenance-notes').value.trim();
+                if (!notes) {
+                    showCustomAlert('O motivo da manutenção é obrigatório.', 'Erro de Validação');
+                    return;
+                }
+                markForMaintenance(equipmentId, notes);
+                delete window.executeMaintenanceAndHide; // Limpa a função global
+                hideCustomModal();
+            };
+        }
+
+        // Envia o equipamento para Field Service/Manutenção
+        function markForMaintenance(id, notes) {
+            const eq = equipment.find(e => e.id === id);
+            if (eq) {
+                const formerStatus = eq.status;
+                const formerUser = eq.currentUser;
+                
+                eq.status = 'Field Service';
+                eq.location = 'Em Reparo/Trânsito';
+
+                // Limpa dados de empréstimo se estava em uso
+                if (formerStatus === 'Em Uso') {
+                    eq.currentUser = '';
+                    eq.department = '';
+                    eq.checkoutDate = '';
+                    eq.deadline = '';
+                }
+
+                saveData();
+                
+                // Adicionar ao histórico
+                addHistory(id, 'Manutenção (Saída)', `Equipamento enviado para Field Service/Manutenção. Motivo: ${notes}. Status anterior: ${formerStatus}. Responsável anterior (se aplicável): ${formerUser || 'N/A'}`, 'Sistema');
+                
+                // Atualizar interface
+                updateEquipmentList();
+                updateStats();
+                populateCheckoutSelect();
+                populateCheckinSelect();
+                
+                showCustomAlert('Equipamento enviado para Field Service com sucesso!', 'Ação Concluída');
+            }
+        }
+        
+        // --- FUNÇÕES DE DESATIVAÇÃO/REMOÇÃO ---
+
+        // Confirmação para Desativação/Remoção Definitiva
+        function confirmRetirement(id) {
+            const eq = equipment.find(e => e.id === id);
+            if (!eq) return;
+
+            const content = `
+                <p><strong>ATENÇÃO:</strong> Esta ação irá **REMOVER DEFINITIVAMENTE** o equipamento <strong>${eq.id} - ${eq.model}</strong> do inventário principal.</p>
+                <p>O histórico de movimentações será mantido, mas o equipamento não aparecerá mais na lista.</p>
+                <div class="form-group" style="margin-top: 20px;">
+                    <label for="retirement-reason">Motivo da Desativação (Obrigatório)</label>
+                    <select id="retirement-reason" required>
+                        <option value="">Selecione o motivo</option>
+                        <option value="Descarte por Obsolescência">Descarte por Obsolescência</option>
+                        <option value="Quebra/Dano Irreparável">Quebra/Dano Irreparável</option>
+                        <option value="Roubo/Perda">Roubo/Perda</option>
+                        <option value="Venda/Doação">Venda/Doação</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+            `;
+
+            // Usa o modal customizado com botões dinâmicos que chamam a função global
+            showCustomModal(content, 'Confirmar Desativação de Equipamento', `
+                <button class="btn-danger" onclick="executeRetirementAndHide('${id}')">Confirmar Desativação</button>
+                <button class="btn-secondary" onclick="hideCustomModal()" style="margin-left: 10px;">Cancelar</button>
+            `);
+
+            // Função global temporária para tratar a submissão do modal
+            window.executeRetirementAndHide = function(equipmentId) {
+                const reason = document.getElementById('retirement-reason').value;
+                if (!reason) {
+                    showCustomAlert('Por favor, selecione um motivo para a desativação.', 'Erro de Validação');
+                    return;
+                }
+                retireEquipment(equipmentId, reason);
+                delete window.executeRetirementAndHide; // Limpa a função global
+                hideCustomModal();
+            };
+        }
+
+        // Remove o equipamento do array principal
+        function retireEquipment(id, reason) {
+            const eqIndex = equipment.findIndex(e => e.id === id);
+            if (eqIndex !== -1) {
+                const eq = equipment[eqIndex];
+                equipment.splice(eqIndex, 1); // Remove do array
+
+                // Adiciona ao histórico o registro de desativação
+                addHistory(id, 'Desativado/Removido', `Equipamento **REMOVIDO** do inventário. Motivo: ${reason}. (Tipo: ${eq.type}, Modelo: ${eq.model})`, 'Sistema');
+
+                saveData();
+                
+                // Atualizar interface
+                updateEquipmentList();
+                updateStats();
+                populateCheckoutSelect();
+                populateCheckinSelect();
+                
+                showCustomAlert(`Equipamento ${id} desativado com sucesso. Foi removido do inventário principal, mas seu histórico foi mantido.`, 'Desativação Concluída');
+            }
+        }
+        
+        // --- FIM DAS FUNÇÕES DE DESATIVAÇÃO/REMOÇÃO ---
 
         // --- NOVAS FUNÇÕES DE DOWNLOAD CSV ---
 
@@ -864,16 +1188,16 @@
                 const row = document.createElement('tr');
                 
                 // Lógica de atraso
-                const isOverdue = eq.deadline && new Date(eq.deadline) < new Date();
+                const isOverdue = eq.deadline && eq.status === 'Em Uso' && new Date(eq.deadline) < new Date();
                 const today = new Date();
                 today.setHours(0, 0, 0, 0); 
-                const deadlineDate = eq.deadline ? new Date(eq.deadline) : null;
+                const deadlineDate = eq.deadline ? new Date(eq.deadline + 'T00:00:00Z') : null; // Usa T00:00:00Z para UTC
 
                 let dueSoon = false;
-                if (deadlineDate && !isOverdue) {
-                    const diffTime = Math.abs(deadlineDate - today);
+                if (deadlineDate && !isOverdue && eq.status === 'Em Uso') {
+                    const diffTime = deadlineDate.getTime() - today.getTime();
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    dueSoon = diffDays <= 3;
+                    dueSoon = diffDays > 0 && diffDays <= 3;
                 }
                 
                 let statusClass = '';
@@ -888,16 +1212,35 @@
                 else if (eq.status === 'Disponível') statusClass = 'status-disponivel';
                 
                 let locationText = eq.currentUser || eq.location;
-                if (!locationText && eq.status === 'Field Service') locationText = 'Em Trânsito/Reparo';
+                if (!locationText && eq.status === 'Field Service') locationText = 'Em Reparo/Trânsito';
 
                 let deadlineText = '-';
                 let deadlineClass = '';
-                if (eq.deadline) {
+                if (eq.deadline && eq.status === 'Em Uso') {
                     deadlineText = formatDate(eq.deadline);
                     if (isOverdue) deadlineClass = 'overdue';
                     else if (dueSoon) deadlineClass = 'due-soon';
                     else deadlineClass = 'on-time';
                 }
+                
+                // Construção dinâmica dos botões de ação
+                let actionButtons = `
+                    <button class="btn-warning" onclick="editEquipmentDetails('${eq.id}')">Editar</button>
+                    <button onclick="viewEquipmentDetails('${eq.id}')">Detalhes</button>
+                `;
+
+                // Botão de Forçar Retorno (se não estiver Disponível)
+                if (eq.status !== 'Disponível') {
+                    actionButtons += `<button class="btn-danger" onclick="confirmForceCheckIn('${eq.id}')">Forçar Retorno</button>`;
+                }
+
+                // Botão de Field Service (se não estiver Field Service)
+                if (eq.status !== 'Field Service') {
+                     actionButtons += `<button class="btn-warning" onclick="confirmMaintenanceRequest('${eq.id}')">Manutenção/FS</button>`; 
+                }
+
+                // Novo Botão de Desativação
+                actionButtons += `<button class="btn-danger" onclick="confirmRetirement('${eq.id}')" style="margin-top: 5px;">Desativar/Remover</button>`;
                 
                 row.innerHTML = `
                     <td>${eq.id}</td>
@@ -908,9 +1251,7 @@
                     <td>${locationText}</td>
                     <td class="${deadlineClass}">${deadlineText}</td>
                     <td>
-                        <button class="btn-warning" onclick="editEquipmentDetails('${eq.id}')">Editar</button>
-                        <button onclick="viewEquipmentDetails('${eq.id}')">Detalhes</button>
-                        ${eq.status !== 'Disponível' ? `<button class="btn-danger" onclick="confirmForceCheckIn('${eq.id}')">Forçar Retorno</button>` : ''}
+                        ${actionButtons}
                     </td>
                 `;
                 
@@ -1029,7 +1370,7 @@
                 
                 if (eq.currentUser) {
                     details += `
-                        <hr class="my-3">
+                        <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
                         <p><strong>Responsável:</strong> ${eq.currentUser}</p>
                         <p><strong>Departamento:</strong> ${eq.department}</p>
                         <p><strong>Data de Saída:</strong> ${formatDate(eq.checkoutDate)}</p>
@@ -1051,7 +1392,7 @@
             const content = `
                 <p>Tem certeza que deseja forçar o retorno do equipamento <strong>${eq.id} - ${eq.model}</strong>?</p>
                 <p>O status atual é <strong>${eq.status}</strong>, com o responsável <strong>${eq.currentUser || 'N/A'}</strong>.</p>
-                <p class="text-danger">Esta ação irá marcar o equipamento como Disponível (Estoque).</p>
+                <p class="overdue" style="font-weight: bold; margin-top: 10px;">Esta ação irá marcar o equipamento como Disponível (Estoque).</p>
             `;
 
             showCustomConfirmation(content, 'Confirmar Retorno Forçado', () => forceCheckIn(id));
@@ -1061,11 +1402,13 @@
         function forceCheckIn(id) {
             const eq = equipment.find(e => e.id === id);
             if (eq) {
+                const formerUser = eq.currentUser; // Captura o usuário antes de limpar os dados
+                
                 eq.status = 'Disponível';
                 eq.location = 'Estoque';
                 
                 // Adicionar ao histórico
-                addHistory(id, 'Retorno Forçado', `Equipamento retornado forçadamente pelo sistema (Responsável anterior: ${eq.currentUser || 'N/A'})`);
+                addHistory(id, 'Retorno Forçado', `Equipamento retornado forçadamente pelo sistema (Responsável anterior: ${formerUser || 'N/A'})`, 'Sistema');
                 
                 // Limpar dados de empréstimo
                 eq.currentUser = '';
@@ -1184,6 +1527,19 @@
                 #custom-modal-footer {
                     margin-top: 20px;
                     text-align: right;
+                }
+                .text-danger {
+                    color: var(--danger);
+                }
+                .mt-3 {
+                    margin-top: 15px;
+                }
+                /* Estilo do botão Cancelar */
+                #custom-modal-footer button:not(.btn-danger):not(.btn-success) {
+                    background-color: #7f8c8d; /* Cinza */
+                }
+                #custom-modal-footer button:not(.btn-danger):not(.btn-success):hover {
+                    background-color: #95a5a6; 
                 }
             `;
             document.head.appendChild(style);
