@@ -112,6 +112,7 @@
             cursor: pointer;
             font-size: 1rem;
             transition: background-color 0.3s;
+            margin: 2px 0; /* Espaçamento para botões em dispositivos móveis */
         }
         
         button:hover {
@@ -132,6 +133,15 @@
         
         .btn-success:hover {
             background-color: #219653;
+        }
+
+        .btn-warning {
+            background-color: var(--warning);
+            color: var(--dark);
+        }
+
+        .btn-warning:hover {
+            background-color: #e08b00;
         }
         
         table {
@@ -194,9 +204,29 @@
             color: #856404;
             border: 1px solid #ffeaa7;
         }
-        
+
+        /* Estilo para a caixa de busca e o botão de exportação */
         .search-box {
             margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-direction: column;
+        }
+        
+        .search-box input {
+            flex-grow: 1;
+        }
+
+        @media (min-width: 600px) {
+            .search-box {
+                flex-direction: row;
+                align-items: center;
+            }
+
+            .search-box button {
+                width: auto;
+                flex-shrink: 0;
+            }
         }
         
         .stats {
@@ -256,6 +286,11 @@
             .stats {
                 grid-template-columns: 1fr 1fr;
             }
+
+            td button {
+                width: 100%;
+                margin-bottom: 5px;
+            }
         }
     </style>
 </head>
@@ -300,6 +335,7 @@
         <div id="equipment-list" class="tab-content active">
             <div class="search-box">
                 <input type="text" id="search-equipment" placeholder="Pesquisar equipamentos...">
+                <button class="btn-warning" onclick="downloadEquipmentCSV()">Exportar Inventário (.CSV)</button>
             </div>
             <table id="equipment-table">
                 <thead>
@@ -375,7 +411,6 @@
                 </div>
                 <div class="form-group">
                     <label for="checkout-deadline">Prazo de Devolução</label>
-                    <!-- AQUI o campo de data, que será configurado com a data mínima via JS -->
                     <input type="date" id="checkout-deadline" required>
                 </div>
                 <div class="form-group">
@@ -417,6 +452,7 @@
             <h2>Histórico de Movimentações</h2>
             <div class="search-box">
                 <input type="text" id="search-history" placeholder="Pesquisar no histórico...">
+                <button class="btn-warning" onclick="downloadHistoryCSV()">Exportar Histórico (.CSV)</button>
             </div>
             <table id="history-table">
                 <thead>
@@ -444,7 +480,7 @@
         
         // Inicialização
         document.addEventListener('DOMContentLoaded', function() {
-            // NOVO: Adicionar data mínima para Prazo de Devolução (não permitir datas passadas)
+            // Adicionar data mínima para Prazo de Devolução (não permitir datas passadas)
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('checkout-deadline').setAttribute('min', today);
 
@@ -640,6 +676,168 @@
             }
         }
         
+        // Abre o modal de edição
+        function editEquipmentDetails(id) {
+            const eq = equipment.find(e => e.id === id);
+            if (!eq) {
+                showCustomAlert('Equipamento não encontrado.', 'Erro');
+                return;
+            }
+
+            // Gerar o HTML do formulário de edição
+            const bodyContent = `
+                <form id="edit-equipment-form">
+                    <input type="hidden" id="edit-id" value="${eq.id}">
+                    <div class="form-group">
+                        <label for="edit-type">Tipo de Equipamento</label>
+                        <select id="edit-type" required>
+                            ${['Laptop', 'Desktop', 'Tablet', 'Smartphone', 'Monitor', 'Impressora', 'Outro'].map(t => 
+                                `<option value="${t}" ${eq.type === t ? 'selected' : ''}>${t}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-model">Modelo</label>
+                        <input type="text" id="edit-model" value="${eq.model}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-serial">Número de Série</label>
+                        <input type="text" id="edit-serial" value="${eq.serial}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-condition">Condição Atual</label>
+                        <select id="edit-condition" required>
+                            ${['Novo', 'Excelente', 'Boa', 'Regular', 'Necessita Manutenção', 'Danificado'].map(c => 
+                                `<option value="${c}" ${eq.condition === c ? 'selected' : ''}>${c}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                </form>
+            `;
+
+            const footerContent = `
+                <button class="btn-success" onclick="saveEquipmentEdit('${eq.id}')">Salvar Alterações</button>
+                <button class="btn-danger" onclick="hideCustomModal()" style="margin-left: 10px;">Cancelar</button>
+            `;
+
+            showCustomModal(bodyContent, `Editar Equipamento: ${eq.id}`, footerContent);
+        }
+
+        // Salva as alterações do equipamento
+        function saveEquipmentEdit(id) {
+            const eqIndex = equipment.findIndex(e => e.id === id);
+            if (eqIndex === -1) {
+                showCustomAlert('Equipamento não encontrado.', 'Erro');
+                hideCustomModal();
+                return;
+            }
+
+            const oldEq = equipment[eqIndex];
+            const newType = document.getElementById('edit-type').value;
+            const newModel = document.getElementById('edit-model').value;
+            const newSerial = document.getElementById('edit-serial').value;
+            const newCondition = document.getElementById('edit-condition').value;
+
+            let changes = [];
+            
+            if (oldEq.type !== newType) changes.push(`Tipo: de "${oldEq.type}" para "${newType}"`);
+            if (oldEq.model !== newModel) changes.push(`Modelo: de "${oldEq.model}" para "${newModel}"`);
+            if (oldEq.serial !== newSerial) changes.push(`Nº de Série: de "${oldEq.serial}" para "${newSerial}"`);
+            if (oldEq.condition !== newCondition) changes.push(`Condição: de "${oldEq.condition}" para "${newCondition}"`);
+
+            if (changes.length > 0) {
+                // Atualiza o objeto
+                equipment[eqIndex].type = newType;
+                equipment[eqIndex].model = newModel;
+                equipment[eqIndex].serial = newSerial;
+                equipment[eqIndex].condition = newCondition;
+
+                saveData();
+                addHistory(id, 'Edição', `Detalhes do equipamento atualizados: ${changes.join('; ')}`);
+                
+                updateEquipmentList();
+                showCustomAlert('Alterações salvas com sucesso!', 'Edição Concluída');
+            } else {
+                showCustomAlert('Nenhuma alteração detectada.', 'Edição');
+            }
+
+            hideCustomModal();
+        }
+
+        // --- NOVAS FUNÇÕES DE DOWNLOAD CSV ---
+
+        // Função genérica para criar e acionar o download do arquivo CSV
+        function downloadCSV(csv, filename) {
+            // Cria um Blob (objeto de arquivo) com o conteúdo CSV
+            // Usamos 'text/csv;charset=utf-8' e adicionamos BOM para garantir caracteres especiais (como acentos) no Excel
+            const BOM = "\uFEFF"; 
+            const csvFile = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
+            const downloadLink = document.createElement('a');
+
+            downloadLink.download = filename;
+            downloadLink.href = window.URL.createObjectURL(csvFile);
+            downloadLink.style.display = 'none';
+
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+
+        // Função para exportar os dados do inventário (equipment)
+        function downloadEquipmentCSV() {
+            const headers = ["ID", "Tipo", "Modelo", "Serial", "Status", "Condicao", "Responsavel", "Departamento", "Data Saida", "Prazo Devolucao", "Localizacao"];
+            
+            const data = equipment.map(eq => [
+                eq.id,
+                eq.type,
+                eq.model,
+                eq.serial,
+                eq.status,
+                eq.condition,
+                eq.currentUser,
+                eq.department,
+                formatDate(eq.checkoutDate),
+                formatDate(eq.deadline),
+                eq.location
+            ]);
+
+            // Monta o CSV, usando ponto-e-vírgula (;) como separador (padrão Brasil/Europa para Excel)
+            let csv = headers.join(";") + "\n";
+            data.forEach(row => {
+                // Envolve cada item em aspas duplas e escapa aspas internas
+                csv += row.map(item => `"${(item ? item.toString() : '').replace(/"/g, '""')}"`).join(";") + "\n";
+            });
+
+            downloadCSV(csv, 'inventario_equipamentos.csv');
+            showCustomAlert('Inventário exportado com sucesso para CSV!', 'Download Concluído');
+        }
+
+        // Função para exportar os dados do histórico (history)
+        function downloadHistoryCSV() {
+            const headers = ["Data/Hora", "Equipamento ID", "Tipo Evento", "Tipo Equipamento", "Responsavel", "Detalhes"];
+            
+            const data = history.map(rec => [
+                formatDateTime(rec.date),
+                rec.equipmentId,
+                rec.type,
+                rec.equipmentType,
+                rec.user,
+                rec.details
+            ]);
+
+            // Monta o CSV, usando ponto-e-vírgula (;) como separador (padrão Brasil/Europa para Excel)
+            let csv = headers.join(";") + "\n";
+            data.forEach(row => {
+                // Envolve cada item em aspas duplas e escapa aspas internas
+                csv += row.map(item => `"${(item ? item.toString() : '').replace(/"/g, '""')}"`).join(";") + "\n";
+            });
+
+            downloadCSV(csv, 'historico_movimentacoes.csv');
+            showCustomAlert('Histórico exportado com sucesso para CSV!', 'Download Concluído');
+        }
+
+        // --- FIM DAS NOVAS FUNÇÕES DE DOWNLOAD CSV ---
+
         // Atualizar lista de equipamentos
         function updateEquipmentList(searchTerm = '') {
             const tbody = document.getElementById('equipment-table-body');
@@ -710,6 +908,7 @@
                     <td>${locationText}</td>
                     <td class="${deadlineClass}">${deadlineText}</td>
                     <td>
+                        <button class="btn-warning" onclick="editEquipmentDetails('${eq.id}')">Editar</button>
                         <button onclick="viewEquipmentDetails('${eq.id}')">Detalhes</button>
                         ${eq.status !== 'Disponível' ? `<button class="btn-danger" onclick="confirmForceCheckIn('${eq.id}')">Forçar Retorno</button>` : ''}
                     </td>
@@ -882,7 +1081,7 @@
                 populateCheckoutSelect();
                 populateCheckinSelect();
                 
-                showCustomAlert('Retorno forçado realizado com sucesso!');
+                showCustomAlert('Retorno forçado realizado com sucesso!', 'Ação Concluída');
             }
         }
         
@@ -902,7 +1101,8 @@
         function formatDate(dateString) {
             if (!dateString) return '-';
             try {
-                const date = new Date(dateString);
+                // Adiciona 'T00:00:00Z' para garantir que a data seja interpretada como UTC, evitando problemas de fuso horário
+                const date = new Date(dateString.includes('T') ? dateString : dateString + 'T00:00:00Z');
                 return date.toLocaleDateString('pt-BR', {timeZone: 'UTC'});
             } catch {
                 return dateString;
@@ -1017,8 +1217,9 @@
             document.getElementById('custom-modal-title').textContent = title;
             document.getElementById('custom-modal-body').innerHTML = bodyContent;
             document.getElementById('custom-modal-footer').innerHTML = footerContent;
-            document.getElementById('custom-modal-overlay').classList.add('visible');
-            document.getElementById('custom-modal-overlay').style.display = 'flex';
+            const overlay = document.getElementById('custom-modal-overlay');
+            overlay.classList.add('visible');
+            overlay.style.display = 'flex';
         }
 
         // Função para esconder o modal
