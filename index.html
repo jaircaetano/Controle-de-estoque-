@@ -3,16 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Rastreamento de Equipamentos de TI</title>
+    <title>Sistema de Rastreamento de Equipamentos de TI (Tema Tech)</title>
     <style>
+        /* Paleta de Cores e Tema Tecnológico */
         :root {
-            --primary: #2c3e50;
-            --secondary: #3498db;
-            --success: #27ae60;
-            --warning: #f39c12;
-            --danger: #e74c3c;
-            --light: #ecf0f1;
-            --dark: #34495e;
+            --primary: #1e293b; /* Dark Slate Blue */
+            --secondary: #06b6d4; /* Bright Cyan/Electric Blue (Accent) */
+            --success: #10b981; /* Green for success */
+            --warning: #facc15; /* Yellow for warning/near-deadline */
+            --danger: #ef4444; /* Red for danger/overdue */
+            --background: #0f172a; /* Very Dark Background */
+            --card-bg: #1e293b; /* Card/Element Background */
+            --text-light: #e2e8f0; /* Light text for dark background */
+            --text-dim: #94a3b8; /* Dim text for labels */
+            --border-color: #334155; /* Subtle border/divider */
         }
         
         * {
@@ -23,69 +27,89 @@
         }
         
         body {
-            background-color: #f5f7fa;
-            color: var(--dark);
+            background-color: var(--background);
+            color: var(--text-light);
             line-height: 1.6;
+            min-height: 100vh;
         }
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 20px 10px; /* Ajuste para telas pequenas */
         }
         
         header {
             background-color: var(--primary);
-            color: white;
+            color: var(--text-light);
             padding: 1rem 0;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            border-bottom: 2px solid var(--secondary);
         }
         
         .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 0 20px;
         }
         
         h1 {
             font-size: 1.8rem;
         }
         
+        /* Tabs (Navegação) */
         .tabs {
             display: flex;
-            background-color: white;
-            border-radius: 5px;
+            background-color: var(--card-bg);
+            border-radius: 8px;
             overflow: hidden;
             margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
         }
         
         .tab {
-            padding: 12px 20px;
+            padding: 12px 15px;
             cursor: pointer;
             transition: all 0.3s;
             font-weight: 500;
-            white-space: nowrap; /* Evita quebras de linha em abas */
+            white-space: nowrap;
+            color: var(--text-dim);
+            border-right: 1px solid var(--border-color);
+        }
+        
+        .tab:last-child {
+            border-right: none;
+        }
+
+        .tab:hover:not(.active) {
+            background-color: #27374d;
+            color: var(--text-light);
         }
         
         .tab.active {
             background-color: var(--secondary);
-            color: white;
+            color: var(--background);
+            font-weight: bold;
+            box-shadow: inset 0 -3px 0 var(--secondary);
         }
         
         .tab-content {
             display: none;
-            background-color: white;
-            border-radius: 5px;
+            background-color: var(--card-bg);
+            border-radius: 8px;
             padding: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             margin-bottom: 20px;
+            border: 1px solid var(--border-color);
         }
         
         .tab-content.active {
             display: block;
         }
         
+        /* Formulários */
         .form-group {
             margin-bottom: 15px;
         }
@@ -94,34 +118,49 @@
             display: block;
             margin-bottom: 5px;
             font-weight: 500;
+            color: var(--text-dim);
         }
         
         input, select, textarea {
             width: 100%;
             padding: 10px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: 4px;
             font-size: 1rem;
+            background-color: var(--primary); /* Darker input */
+            color: var(--text-light);
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 5px rgba(6, 182, 212, 0.5); /* Neon glow */
         }
         
         button {
             background-color: var(--secondary);
-            color: white;
+            color: var(--background);
             border: none;
             padding: 10px 15px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 1rem;
-            transition: background-color 0.3s;
-            margin: 2px 0; /* Espaçamento para botões em dispositivos móveis */
+            font-weight: bold;
+            transition: all 0.3s;
+            margin: 4px 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            min-width: 100px; /* Melhor target touch */
         }
         
         button:hover {
-            background-color: #2980b9;
+            background-color: #0891b2; /* Darker Cyan */
+            transform: translateY(-1px);
         }
         
         .btn-danger {
             background-color: var(--danger);
+            color: white;
         }
         
         .btn-danger:hover {
@@ -130,22 +169,39 @@
         
         .btn-success {
             background-color: var(--success);
+            color: var(--background);
         }
         
         .btn-success:hover {
-            background-color: #219653;
+            background-color: #059669;
         }
 
         .btn-warning {
             background-color: var(--warning);
-            color: var(--dark);
+            color: var(--background);
         }
 
         .btn-warning:hover {
-            background-color: #e08b00;
+            background-color: #d9a405;
+        }
+
+        .btn-secondary {
+            background-color: var(--border-color);
+            color: var(--text-light);
+        }
+
+        .btn-secondary:hover {
+            background-color: #475569;
         }
         
+        /* Tabelas - Responsividade Aprimorada */
+        .table-responsive {
+            overflow-x: auto;
+            width: 100%;
+        }
+
         table {
+            min-width: 800px; /* Garante que a tabela não encolha demais */
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
@@ -154,59 +210,58 @@
         th, td {
             padding: 12px 15px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+            color: var(--text-light);
         }
         
         th {
-            background-color: var(--light);
+            background-color: var(--primary);
             font-weight: 600;
+            text-transform: uppercase;
+            color: var(--secondary);
+            border-top: 1px solid var(--secondary);
         }
         
         tr:hover {
-            background-color: #f9f9f9;
+            background-color: #1e293b; /* Hover mais escuro */
+        }
+
+        td button {
+            margin: 2px;
         }
         
+        /* Status Badges */
         .status-badge {
             display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 6px 10px;
+            border-radius: 9999px; /* Pill shape */
             font-size: 0.8rem;
-            font-weight: 500;
+            font-weight: 700;
+            text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
         }
         
         .status-em-uso {
-            background-color: #d4edda;
-            color: #155724;
+            background-color: #2563eb; /* Blue */
+            color: white;
         }
         
         .status-field-service {
-            background-color: #fff3cd;
-            color: #856404;
+            background-color: var(--warning);
+            color: var(--background);
         }
         
         .status-disponivel {
-            background-color: #d1ecf1;
-            color: #0c5460;
+            background-color: var(--success);
+            color: var(--background);
         }
         
         .status-atrasado {
-            background-color: #f8d7da;
-            color: #721c24;
+            background-color: var(--danger);
+            color: white;
         }
         
-        .alert {
-            padding: 10px 15px;
-            border-radius: 4px;
-            margin-bottom: 15px;
-        }
-        
-        .alert-warning {
-            background-color: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-        }
-
-        /* Estilo para a caixa de busca e o botão de exportação */
+        /* Search and Export */
         .search-box {
             margin-bottom: 20px;
             display: flex;
@@ -228,53 +283,72 @@
                 width: auto;
                 flex-shrink: 0;
             }
+
+            .tab {
+                flex: 1;
+                text-align: center;
+            }
+
+            td button {
+                /* Permite que os botões fiquem lado a lado em desktop */
+                width: auto;
+                display: inline-block;
+            }
         }
         
+        /* Stats Cards */
         .stats {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
             gap: 15px;
             margin-bottom: 20px;
         }
         
         .stat-card {
-            background-color: white;
-            border-radius: 5px;
+            background-color: var(--card-bg);
+            border-radius: 8px;
             padding: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
             text-align: center;
+            border-left: 5px solid var(--secondary); /* Tech accent */
         }
         
         .stat-value {
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: bold;
             margin: 10px 0;
+            color: var(--secondary);
+            text-shadow: 0 0 5px rgba(6, 182, 212, 0.5); /* Glow effect */
         }
         
         .stat-label {
-            color: #7f8c8d;
+            color: var(--text-dim);
             font-size: 0.9rem;
+            text-transform: uppercase;
         }
         
+        /* Indicadores de prazo */
         .overdue {
             color: var(--danger);
+            font-weight: bold;
         }
         
         .due-soon {
             color: var(--warning);
+            font-weight: bold;
         }
         
         .on-time {
             color: var(--success);
         }
         
-        /* Divisor */
         .separator {
-            border-top: 2px solid var(--light);
+            border-top: 2px dashed var(--border-color);
             margin: 20px 0;
             padding-top: 10px;
         }
 
+        /* Responsividade para Abas em Mobile */
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
@@ -286,9 +360,15 @@
             }
             
             .tab {
-                flex: 1;
-                min-width: 120px;
+                flex: 1 1 auto;
+                min-width: 40%;
                 text-align: center;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .tab:nth-child(even) {
+                border-right: none;
             }
             
             .stats {
@@ -297,9 +377,75 @@
 
             td button {
                 width: 100%;
-                margin-bottom: 5px;
+                margin: 2px 0;
             }
         }
+
+        /* --- Estilos do Modal Customizado --- */
+        #custom-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        #custom-modal-content {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.4); /* Neon shadow */
+            max-width: 95%;
+            width: 500px;
+            min-width: 300px;
+            transform: scale(0.9);
+            opacity: 0;
+            transition: all 0.3s ease-in-out;
+            border: 1px solid var(--secondary);
+        }
+        #custom-modal-overlay.visible #custom-modal-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+        #custom-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px dashed var(--secondary);
+            padding-bottom: 10px;
+        }
+        #custom-modal-header h3 {
+            margin: 0;
+            color: var(--secondary);
+            font-size: 1.2rem;
+        }
+        #custom-modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-dim);
+        }
+        #custom-modal-close:hover {
+            color: var(--danger);
+        }
+        #custom-modal-body p {
+            margin-bottom: 10px;
+            color: var(--text-light);
+        }
+        #custom-modal-footer {
+            margin-top: 20px;
+            text-align: right;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        /* Fim dos estilos de modal */
     </style>
 </head>
 <body>
@@ -342,26 +488,28 @@
         
         <div id="equipment-list" class="tab-content active">
             <div class="search-box">
-                <input type="text" id="search-equipment" placeholder="Pesquisar equipamentos...">
+                <input type="text" id="search-equipment" placeholder="Pesquisar equipamentos, série ou responsável...">
                 <button class="btn-warning" onclick="downloadEquipmentCSV()">Exportar Inventário (.CSV)</button>
             </div>
-            <table id="equipment-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Tipo</th>
-                        <th>Modelo</th>
-                        <th>Número de Série</th>
-                        <th>Status</th>
-                        <th>Localização</th>
-                        <th>Prazo</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="equipment-table-body">
-                    <!-- Os dados dos equipamentos serão inseridos aqui via JavaScript -->
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table id="equipment-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tipo</th>
+                            <th>Modelo</th>
+                            <th>Número de Série</th>
+                            <th>Status</th>
+                            <th>Localização</th>
+                            <th>Prazo</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="equipment-table-body">
+                        <!-- Os dados dos equipamentos serão inseridos aqui via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
         </div>
         
         <div id="add-equipment" class="tab-content">
@@ -404,7 +552,7 @@
 
             <!-- 2. Importar Equipamentos em Massa (CSV) -->
             <h2>Importar Equipamentos em Lote (CSV)</h2>
-            <p>Selecione um arquivo CSV com seus equipamentos. O arquivo deve ter as colunas: <strong>Tipo</strong>, <strong>Modelo</strong>, <strong>Número de Série</strong> e <strong>Status Inicial</strong>.</p>
+            <p style="color: var(--text-dim);">Selecione um arquivo CSV com seus equipamentos. O arquivo deve ter as colunas: <strong>Tipo</strong>, <strong>Modelo</strong>, <strong>Número de Série</strong> e <strong>Status Inicial</strong>.</p>
             <form id="import-csv-form">
                 <div class="form-group">
                     <label for="csv-file">Arquivo CSV</label>
@@ -477,20 +625,22 @@
                 <input type="text" id="search-history" placeholder="Pesquisar no histórico...">
                 <button class="btn-warning" onclick="downloadHistoryCSV()">Exportar Histórico (.CSV)</button>
             </div>
-            <table id="history-table">
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Equipamento</th>
-                        <th>Tipo</th>
-                        <th>Responsável</th>
-                        <th>Detalhes</th>
-                    </tr>
-                </thead>
-                <tbody id="history-table-body">
-                    <!-- O histórico será inserido aqui via JavaScript -->
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table id="history-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Equipamento</th>
+                            <th>Tipo</th>
+                            <th>Responsável</th>
+                            <th>Detalhes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                        <!-- O histórico será inserido aqui via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -790,15 +940,15 @@
             
             if (errors.length > 0) {
                 summaryMessage += `
-                    <div style="margin-top: 15px; max-height: 150px; overflow-y: auto; border: 1px solid #ddd; padding: 10px;">
-                        <strong>Detalhes dos Erros de Formatação:</strong>
-                        <ul>
-                            ${errors.map(err => `<li>${err}</li>`).join('')}
+                    <div style="margin-top: 15px; max-height: 150px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 4px; background-color: var(--primary);">
+                        <strong style="color: var(--text-light);">Detalhes dos Erros de Formatação:</strong>
+                        <ul style="padding-left: 20px;">
+                            ${errors.map(err => `<li style="list-style-type: disc; color: var(--text-dim);">${err}</li>`).join('')}
                         </ul>
                     </div>
                 `;
             } else if (failureCount > 0) {
-                summaryMessage += `<p style="margin-top: 10px;">As falhas geralmente são devido a **Números de Série duplicados** já existentes no inventário.</p>`;
+                summaryMessage += `<p style="margin-top: 10px; color: var(--text-dim);">As falhas geralmente são devido a **Números de Série duplicados** já existentes no inventário.</p>`;
             }
 
 
@@ -906,7 +1056,7 @@
 
             const footerContent = `
                 <button class="btn-success" onclick="saveEquipmentEdit('${eq.id}')">Salvar Alterações</button>
-                <button class="btn-danger" onclick="hideCustomModal()" style="margin-left: 10px;">Cancelar</button>
+                <button class="btn-secondary" onclick="hideCustomModal()">Cancelar</button>
             `;
 
             showCustomModal(bodyContent, `Editar Equipamento: ${eq.id}`, footerContent);
@@ -960,10 +1110,10 @@
 
             let content = `
                 <p>Tem certeza que deseja enviar o equipamento <strong>${eq.id} - ${eq.model}</strong> para **Field Service/Manutenção**?</p>
-                <p>O status atual é <strong>${eq.status}</strong>, com o responsável <strong>${eq.currentUser || 'N/A'}</strong>.</p>
+                <p style="color: var(--text-dim);">O status atual é <strong>${eq.status}</strong>, com o responsável <strong>${eq.currentUser || 'N/A'}</strong>.</p>
             `;
             if (eq.status === 'Em Uso') {
-                content += `<p class="text-danger">Esta ação irá **interromper o empréstimo** e marcar o item para manutenção.</p>`;
+                content += `<p style="color: var(--danger); font-weight: bold;">Esta ação irá **interromper o empréstimo** e marcar o item para manutenção.</p>`;
             } else {
                 content += `<p>Esta ação irá marcar o equipamento como Field Service (Em Reparo/Trânsito).</p>`;
             }
@@ -973,7 +1123,7 @@
             // Usa o modal customizado com botões dinâmicos que chamam a função global
             showCustomModal(content, 'Confirmar Envio para Manutenção', `
                 <button class="btn-success" onclick="executeMaintenanceAndHide('${id}')">Confirmar Envio</button>
-                <button class="btn-danger" onclick="hideCustomModal()" style="margin-left: 10px;">Cancelar</button>
+                <button class="btn-secondary" onclick="hideCustomModal()">Cancelar</button>
             `);
 
             // Função global temporária para tratar a submissão do modal
@@ -1030,8 +1180,8 @@
             if (!eq) return;
 
             const content = `
-                <p><strong>ATENÇÃO:</strong> Esta ação irá **REMOVER DEFINITIVAMENTE** o equipamento <strong>${eq.id} - ${eq.model}</strong> do inventário principal.</p>
-                <p>O histórico de movimentações será mantido, mas o equipamento não aparecerá mais na lista.</p>
+                <p style="color: var(--danger); font-weight: bold;"><strong>ATENÇÃO:</strong> Esta ação irá **REMOVER DEFINITIVAMENTE** o equipamento <strong>${eq.id} - ${eq.model}</strong> do inventário principal.</p>
+                <p style="color: var(--text-dim);">O histórico de movimentações será mantido.</p>
                 <div class="form-group" style="margin-top: 20px;">
                     <label for="retirement-reason">Motivo da Desativação (Obrigatório)</label>
                     <select id="retirement-reason" required>
@@ -1048,7 +1198,7 @@
             // Usa o modal customizado com botões dinâmicos que chamam a função global
             showCustomModal(content, 'Confirmar Desativação de Equipamento', `
                 <button class="btn-danger" onclick="executeRetirementAndHide('${id}')">Confirmar Desativação</button>
-                <button class="btn-secondary" onclick="hideCustomModal()" style="margin-left: 10px;">Cancelar</button>
+                <button class="btn-secondary" onclick="hideCustomModal()">Cancelar</button>
             `);
 
             // Função global temporária para tratar a submissão do modal
@@ -1060,7 +1210,6 @@
                 }
                 retireEquipment(equipmentId, reason);
                 delete window.executeRetirementAndHide; // Limpa a função global
-                hideCustomModal();
             };
         }
 
@@ -1226,7 +1375,7 @@
                 // Construção dinâmica dos botões de ação
                 let actionButtons = `
                     <button class="btn-warning" onclick="editEquipmentDetails('${eq.id}')">Editar</button>
-                    <button onclick="viewEquipmentDetails('${eq.id}')">Detalhes</button>
+                    <button class="btn-secondary" onclick="viewEquipmentDetails('${eq.id}')">Detalhes</button>
                 `;
 
                 // Botão de Forçar Retorno (se não estiver Disponível)
@@ -1236,11 +1385,11 @@
 
                 // Botão de Field Service (se não estiver Field Service)
                 if (eq.status !== 'Field Service') {
-                     actionButtons += `<button class="btn-warning" onclick="confirmMaintenanceRequest('${eq.id}')">Manutenção/FS</button>`; 
+                     actionButtons += `<button class="btn-secondary" style="background-color: #0d9488;" onclick="confirmMaintenanceRequest('${eq.id}')">Manutenção/FS</button>`; 
                 }
 
                 // Novo Botão de Desativação
-                actionButtons += `<button class="btn-danger" onclick="confirmRetirement('${eq.id}')" style="margin-top: 5px;">Desativar/Remover</button>`;
+                actionButtons += `<button class="btn-danger" onclick="confirmRetirement('${eq.id}')">Desativar/Remover</button>`;
                 
                 row.innerHTML = `
                     <td>${eq.id}</td>
@@ -1265,7 +1414,9 @@
             const inUse = equipment.filter(e => e.status === 'Em Uso').length;
             const withFieldService = equipment.filter(e => e.status === 'Field Service').length;
             const overdue = equipment.filter(e => {
-                return e.deadline && e.status === 'Em Uso' && new Date(e.deadline) < new Date();
+                // Checa se está em uso e se a data limite é anterior à data de hoje
+                const isOverdue = e.deadline && e.status === 'Em Uso' && new Date(e.deadline) < new Date(new Date().toDateString());
+                return isOverdue;
             }).length;
             
             document.getElementById('total-equipment').textContent = total;
@@ -1360,7 +1511,7 @@
             const eq = equipment.find(e => e.id === id);
             if (eq) {
                 let details = `
-                    <h3>Detalhes do Equipamento: ${eq.id}</h3>
+                    <h3 style="color: var(--secondary);">Detalhes do Equipamento: ${eq.id}</h3>
                     <p><strong>Tipo:</strong> ${eq.type}</p>
                     <p><strong>Modelo:</strong> ${eq.model}</p>
                     <p><strong>Série:</strong> ${eq.serial}</p>
@@ -1370,7 +1521,7 @@
                 
                 if (eq.currentUser) {
                     details += `
-                        <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
+                        <hr style="margin: 15px 0; border: 0; border-top: 1px dashed var(--border-color);">
                         <p><strong>Responsável:</strong> ${eq.currentUser}</p>
                         <p><strong>Departamento:</strong> ${eq.department}</p>
                         <p><strong>Data de Saída:</strong> ${formatDate(eq.checkoutDate)}</p>
@@ -1391,7 +1542,7 @@
 
             const content = `
                 <p>Tem certeza que deseja forçar o retorno do equipamento <strong>${eq.id} - ${eq.model}</strong>?</p>
-                <p>O status atual é <strong>${eq.status}</strong>, com o responsável <strong>${eq.currentUser || 'N/A'}</strong>.</p>
+                <p style="color: var(--text-dim);">O status atual é <strong>${eq.status}</strong>, com o responsável <strong>${eq.currentUser || 'N/A'}</strong>.</p>
                 <p class="overdue" style="font-weight: bold; margin-top: 10px;">Esta ação irá marcar o equipamento como Disponível (Estoque).</p>
             `;
 
@@ -1469,82 +1620,8 @@
         function setupModalStructure() {
             if (document.getElementById('custom-modal-overlay')) return;
 
-            const style = document.createElement('style');
-            style.textContent = `
-                #custom-modal-overlay {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background-color: rgba(0, 0, 0, 0.6);
-                    display: none;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 1000;
-                }
-                #custom-modal-content {
-                    background-color: white;
-                    padding: 25px;
-                    border-radius: 8px;
-                    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-                    max-width: 90%;
-                    min-width: 300px;
-                    transform: scale(0.9);
-                    opacity: 0;
-                    transition: all 0.3s ease-in-out;
-                }
-                #custom-modal-overlay.visible #custom-modal-content {
-                    transform: scale(1);
-                    opacity: 1;
-                }
-                #custom-modal-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 15px;
-                    border-bottom: 1px solid #eee;
-                    padding-bottom: 10px;
-                }
-                #custom-modal-header h3 {
-                    margin: 0;
-                    color: var(--primary);
-                    font-size: 1.2rem;
-                }
-                #custom-modal-close {
-                    background: none;
-                    border: none;
-                    font-size: 1.5rem;
-                    cursor: pointer;
-                    color: #7f8c8d;
-                }
-                #custom-modal-close:hover {
-                    color: var(--danger);
-                }
-                #custom-modal-body p {
-                    margin-bottom: 10px;
-                }
-                #custom-modal-footer {
-                    margin-top: 20px;
-                    text-align: right;
-                }
-                .text-danger {
-                    color: var(--danger);
-                }
-                .mt-3 {
-                    margin-top: 15px;
-                }
-                /* Estilo do botão Cancelar */
-                #custom-modal-footer button:not(.btn-danger):not(.btn-success) {
-                    background-color: #7f8c8d; /* Cinza */
-                }
-                #custom-modal-footer button:not(.btn-danger):not(.btn-success):hover {
-                    background-color: #95a5a6; 
-                }
-            `;
-            document.head.appendChild(style);
-
-
+            // O CSS foi movido para o bloco <style> principal para melhor organização
+            
             const modalHTML = `
                 <div id="custom-modal-overlay">
                     <div id="custom-modal-content">
@@ -1561,6 +1638,7 @@
 
             document.getElementById('custom-modal-close').addEventListener('click', hideCustomModal);
             document.getElementById('custom-modal-overlay').addEventListener('click', (e) => {
+                // Apenas fecha se clicar no overlay, não no conteúdo do modal
                 if (e.target.id === 'custom-modal-overlay') {
                     hideCustomModal();
                 }
@@ -1600,7 +1678,7 @@
         // Confirmação customizada (substitui confirm())
         function showCustomConfirmation(message, title, callback) {
             const confirmBtn = `<button class="btn-success" onclick="executeAndHide(true)">Confirmar</button>`;
-            const cancelBtn = `<button class="btn-danger" onclick="executeAndHide(false)" style="margin-left: 10px;">Cancelar</button>`;
+            const cancelBtn = `<button class="btn-secondary" onclick="executeAndHide(false)">Cancelar</button>`;
             
             showCustomModal(message, title, cancelBtn + confirmBtn);
 
@@ -1609,6 +1687,7 @@
                 if (confirmed) {
                     callback();
                 }
+                // Limpa a função global e esconde o modal
                 delete window.executeAndHide;
                 hideCustomModal();
             };
@@ -1622,4 +1701,6 @@
     </script>
 </body>
 </html>
+
+
 
