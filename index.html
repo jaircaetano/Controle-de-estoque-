@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ITAM | Inventáriode TI</title>
+    <title>ITAM | Inventário de TI</title>
     <!-- Fontes e Ícones -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -431,11 +431,13 @@
         <!-- INVENTORY TAB -->
         <div id="inventory-tab" style="display:none;">
             <div class="card-table">
-                <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 2rem;">
+                <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 2rem; flex-wrap: wrap; gap: 15px;">
                     <h3>Gestão de Inventário</h3>
                     <div style="display:flex; gap: 8px;">
+                        <input type="file" id="csv-upload" accept=".csv" style="display: none;" onchange="importCSV(this)">
+                        <button class="btn" style="background: var(--secondary); color: white;" onclick="document.getElementById('csv-upload').click()">Importar CSV</button>
                         <button class="btn btn-primary" onclick="openAddModal()">+ Novo Item</button>
-                        <button class="btn" style="background: var(--border);" onclick="exportInventory()">CSV</button>
+                        <button class="btn" style="background: var(--border);" onclick="exportInventory()">Exportar CSV</button>
                     </div>
                 </div>
                 <div class="table-responsive">
@@ -446,7 +448,7 @@
                                 <th>Tipo/Modelo</th>
                                 <th>Série</th>
                                 <th>Status</th>
-                                <th>Condição</th>
+                                <th>Local/Resp.</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
@@ -530,6 +532,7 @@
     <div id="modal-card">
         <h3 id="modal-title" style="margin-bottom: 1.5rem;">Novo Ativo de TI</h3>
         <form id="equipment-form">
+            <input type="hidden" id="eq-id">
             <div class="form-grid">
                 <div class="form-group">
                     <label>Tipo</label>
@@ -545,9 +548,21 @@
                     <label>Modelo</label>
                     <input type="text" id="eq-model" required>
                 </div>
-                <div class="form-group full-width">
+                <div class="form-group">
                     <label>Número de Série</label>
                     <input type="text" id="eq-serial" required>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="eq-status">
+                        <option value="Disponível">Disponível</option>
+                        <option value="Em Uso">Em Uso</option>
+                        <option value="Manutenção">Manutenção</option>
+                    </select>
+                </div>
+                <div class="form-group full-width">
+                    <label>Local / Responsável Atual</label>
+                    <input type="text" id="eq-user" placeholder="Ex: Almoxarifado ou Nome do Usuário">
                 </div>
             </div>
             <div style="display:flex; gap: 10px; margin-top: 2rem;">
@@ -559,11 +574,10 @@
 </div>
 
 <script>
-    // Gerenciamento de Estado (Persistência em Memória)
+    // Gerenciamento de Estado
     let assets = JSON.parse(localStorage.getItem('erp_assets')) || [];
     let logs = JSON.parse(localStorage.getItem('erp_logs')) || [];
 
-    // Inicialização
     window.onload = () => {
         document.getElementById('current-date').innerText = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'full' }).format(new Date());
         refreshUI();
@@ -575,7 +589,6 @@
         refreshUI();
     }
 
-    // Navegação entre abas
     function switchTab(tabName) {
         const tabs = ['dashboard', 'inventory', 'movement', 'history'];
         tabs.forEach(t => {
@@ -590,7 +603,6 @@
         document.getElementById('view-title').innerText = tabName.charAt(0).toUpperCase() + tabName.slice(1);
     }
 
-    // CRUD e Lógica de Negócio
     function refreshUI() {
         renderDashboard();
         renderInventory();
@@ -603,7 +615,6 @@
         document.getElementById('stat-total').innerText = assets.length;
         document.getElementById('stat-in-use').innerText = assets.filter(a => a.status === 'Em Uso').length;
         document.getElementById('stat-maintenance').innerText = assets.filter(a => a.status === 'Manutenção').length;
-        
         const overdueCount = assets.filter(a => a.deadline && new Date(a.deadline) < new Date() && a.status === 'Em Uso').length;
         document.getElementById('stat-overdue').innerText = overdueCount;
     }
@@ -641,9 +652,12 @@
                     <td><b>${a.type}</b><br><small>${a.model}</small></td>
                     <td><code style="color: var(--primary)">${a.serial}</code></td>
                     <td><span class="badge ${getStatusClass(a.status)}">${a.status}</span></td>
-                    <td>${a.condition}</td>
+                    <td><small>${a.user || 'ESTOQUE'}</small></td>
                     <td>
-                        <button class="btn" style="padding: 5px 10px; font-size: 0.7rem; background: var(--border)" onclick="deleteAsset('${a.id}')">Excluir</button>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="btn" style="padding: 5px 8px; font-size: 0.7rem; background: var(--border)" onclick="openEditModal('${a.id}')">Editar</button>
+                            <button class="btn" style="padding: 5px 8px; font-size: 0.7rem; background: rgba(239, 68, 68, 0.2); color: var(--danger)" onclick="deleteAsset('${a.id}')">Excluir</button>
+                        </div>
                     </td>
                 </tr>
             `;
@@ -675,38 +689,108 @@
         }
     }
 
-    // Formulários
+    // Modal Add/Edit
+    function openAddModal() {
+        document.getElementById('modal-title').innerText = 'Novo Ativo de TI';
+        document.getElementById('eq-id').value = '';
+        document.getElementById('equipment-form').reset();
+        document.getElementById('modal-overlay').style.display = 'flex';
+    }
+
+    function openEditModal(id) {
+        const asset = assets.find(a => a.id === id);
+        if(!asset) return;
+
+        document.getElementById('modal-title').innerText = 'Editar Ativo';
+        document.getElementById('eq-id').value = asset.id;
+        document.getElementById('eq-type').value = asset.type;
+        document.getElementById('eq-model').value = asset.model;
+        document.getElementById('eq-serial').value = asset.serial;
+        document.getElementById('eq-status').value = asset.status;
+        document.getElementById('eq-user').value = asset.user || '';
+        
+        document.getElementById('modal-overlay').style.display = 'flex';
+    }
+
+    function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+
+    // Submit Formulário Ativo
     document.getElementById('equipment-form').onsubmit = (e) => {
         e.preventDefault();
-        const newAsset = {
-            id: 'ASSET-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-            type: document.getElementById('eq-type').value,
-            model: document.getElementById('eq-model').value,
-            serial: document.getElementById('eq-serial').value,
-            status: 'Disponível',
-            condition: 'Novo',
-            user: '',
-            deadline: ''
-        };
-        assets.push(newAsset);
-        addLog(newAsset.id, 'Cadastro', 'Admin', 'Entrada de novo ativo no inventário');
+        const id = document.getElementById('eq-id').value;
+        const type = document.getElementById('eq-type').value;
+        const model = document.getElementById('eq-model').value;
+        const serial = document.getElementById('eq-serial').value;
+        const status = document.getElementById('eq-status').value;
+        const user = document.getElementById('eq-user').value;
+
+        if(id) {
+            // Edit
+            const index = assets.findIndex(a => a.id === id);
+            assets[index] = { ...assets[index], type, model, serial, status, user };
+            addLog(id, 'Edição', 'Admin', `Dados alterados manualmente. Status: ${status}, Local: ${user}`);
+        } else {
+            // New
+            const newId = 'ASSET-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+            assets.push({
+                id: newId, type, model, serial, status, user,
+                condition: 'Bom', deadline: ''
+            });
+            addLog(newId, 'Cadastro', 'Admin', 'Entrada de novo ativo');
+        }
+
         saveData();
         closeModal();
-        e.target.reset();
     };
 
+    // Importação CSV
+    function importCSV(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const text = e.target.result;
+            const lines = text.split('\n');
+            let count = 0;
+
+            // Pula cabeçalho e processa linhas
+            for(let i = 1; i < lines.length; i++) {
+                const cols = lines[i].split(',').map(c => c.trim());
+                if(cols.length >= 3) { // Minimo: Tipo, Modelo, Serie
+                    const newId = 'ASSET-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                    assets.push({
+                        id: newId,
+                        type: cols[0] || 'Desconhecido',
+                        model: cols[1] || 'S/M',
+                        serial: cols[2] || 'S/N',
+                        status: cols[3] || 'Disponível',
+                        user: cols[4] || '',
+                        condition: 'Bom',
+                        deadline: ''
+                    });
+                    count++;
+                }
+            }
+            addLog('LOTE', 'Importação', 'Admin', `Importação de ${count} ativos via CSV`);
+            saveData();
+            input.value = ''; // Limpa input
+            alert(`${count} ativos importados com sucesso!`);
+        };
+        reader.readAsText(file);
+    }
+
+    // Outros Processamentos
     document.getElementById('checkout-form').onsubmit = (e) => {
         e.preventDefault();
         const id = document.getElementById('co-equipment').value;
         const user = document.getElementById('co-user').value;
         const deadline = document.getElementById('co-deadline').value;
-        
         const asset = assets.find(a => a.id === id);
         asset.status = 'Em Uso';
         asset.user = user;
         asset.deadline = deadline;
-        
-        addLog(id, 'Checkout', user, `Equipamento cedido com prazo até ${deadline}`);
+        addLog(id, 'Checkout', user, `Prazo: ${deadline}`);
         saveData();
         e.target.reset();
     };
@@ -715,17 +799,12 @@
         e.preventDefault();
         const id = document.getElementById('ci-equipment').value;
         const cond = document.getElementById('ci-condition').value;
-        
         const asset = assets.find(a => a.id === id);
         const oldUser = asset.user;
-        asset.status = 'Disponível';
+        asset.status = cond === 'Necessita Reparo' ? 'Manutenção' : 'Disponível';
         asset.user = '';
         asset.deadline = '';
-        asset.condition = cond;
-
-        if(cond === 'Necessita Reparo') asset.status = 'Manutenção';
-        
-        addLog(id, 'Check-in', oldUser, `Retorno processado. Condição: ${cond}`);
+        addLog(id, 'Check-in', oldUser, `Condição: ${cond}`);
         saveData();
         e.target.reset();
     };
@@ -735,7 +814,7 @@
     }
 
     function deleteAsset(id) {
-        if(confirm('Deseja realmente remover este ativo?')) {
+        if(confirm('Remover este ativo permanentemente?')) {
             assets = assets.filter(a => a.id !== id);
             saveData();
         }
@@ -744,41 +823,29 @@
     function populateSelects() {
         const coSel = document.getElementById('co-equipment');
         const ciSel = document.getElementById('ci-equipment');
-        
         coSel.innerHTML = '<option value="">Selecionar Ativo...</option>';
         ciSel.innerHTML = '<option value="">Selecionar Ativo...</option>';
-
         assets.forEach(a => {
-            if(a.status === 'Disponível') {
-                coSel.innerHTML += `<option value="${a.id}">${a.serial} - ${a.model}</option>`;
-            } else if(a.status === 'Em Uso') {
-                ciSel.innerHTML += `<option value="${a.id}">${a.user} | ${a.serial}</option>`;
-            }
+            if(a.status === 'Disponível') coSel.innerHTML += `<option value="${a.id}">${a.serial} - ${a.model}</option>`;
+            else if(a.status === 'Em Uso') ciSel.innerHTML += `<option value="${a.id}">${a.user} | ${a.serial}</option>`;
         });
     }
 
-    function handleSearch(val) {
-        renderInventory(val);
-    }
-
-    // UI Helpers
-    function openAddModal() { document.getElementById('modal-overlay').style.display = 'flex'; }
-    function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+    function handleSearch(val) { renderInventory(val); }
 
     function exportInventory() {
-        let csv = "ID,Tipo,Modelo,Serie,Status,Responsavel\n";
+        let csv = "Tipo,Modelo,Serie,Status,Responsavel\n";
         assets.forEach(a => {
-            csv += `${a.id},${a.type},${a.model},${a.serial},${a.status},${a.user || 'ESTOQUE'}\n`;
+            csv += `${a.type},${a.model},${a.serial},${a.status},${a.user || ''}\n`;
         });
         const blob = new Blob([csv], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.setAttribute('href', url);
-        a.setAttribute('download', 'inventario_logix.csv');
+        a.href = url;
+        a.download = 'inventario_ti.csv';
         a.click();
     }
 </script>
-
 </body>
 </html>
 
