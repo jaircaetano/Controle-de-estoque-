@@ -3,1704 +3,782 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Rastreamento de Equipamentos de TI (Tema Tech)</title>
+    <title>LOGIX - ERP de Logística de TI</title>
+    <!-- Fontes e Ícones -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* Paleta de Cores e Tema Tecnológico */
         :root {
-            --primary: #1e293b; /* Dark Slate Blue */
-            --secondary: #06b6d4; /* Bright Cyan/Electric Blue (Accent) */
-            --success: #10b981; /* Green for success */
-            --warning: #facc15; /* Yellow for warning/near-deadline */
-            --danger: #ef4444; /* Red for danger/overdue */
-            --background: #0f172a; /* Very Dark Background */
-            --card-bg: #1e293b; /* Card/Element Background */
-            --text-light: #e2e8f0; /* Light text for dark background */
-            --text-dim: #94a3b8; /* Dim text for labels */
-            --border-color: #334155; /* Subtle border/divider */
+            --bg-deep: #020617;
+            --bg-card: #0f172a;
+            --primary: #38bdf8;
+            --primary-glow: rgba(56, 189, 248, 0.3);
+            --secondary: #6366f1;
+            --accent: #f472b6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text-main: #f1f5f9;
+            --text-dim: #94a3b8;
+            --border: #1e293b;
+            --sidebar-width: 260px;
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', sans-serif;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) var(--bg-deep);
         }
-        
+
         body {
-            background-color: var(--background);
-            color: var(--text-light);
-            line-height: 1.6;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            overflow-x: hidden;
             min-height: 100vh;
         }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px 10px; /* Ajuste para telas pequenas */
-        }
-        
-        header {
-            background-color: var(--primary);
-            color: var(--text-light);
-            padding: 1rem 0;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            border-bottom: 2px solid var(--secondary);
-        }
-        
-        .header-content {
+
+        /* Layout Estrutural */
+        .app-wrapper {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
+            min-height: 100vh;
         }
-        
-        h1 {
-            font-size: 1.8rem;
-        }
-        
-        /* Tabs (Navegação) */
-        .tabs {
+
+        /* Sidebar Futurista */
+        aside.sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
             display: flex;
-            background-color: var(--card-bg);
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            border: 1px solid var(--border-color);
-        }
-        
-        .tab {
-            padding: 12px 15px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 500;
-            white-space: nowrap;
-            color: var(--text-dim);
-            border-right: 1px solid var(--border-color);
-        }
-        
-        .tab:last-child {
-            border-right: none;
-        }
-
-        .tab:hover:not(.active) {
-            background-color: #27374d;
-            color: var(--text-light);
-        }
-        
-        .tab.active {
-            background-color: var(--secondary);
-            color: var(--background);
-            font-weight: bold;
-            box-shadow: inset 0 -3px 0 var(--secondary);
-        }
-        
-        .tab-content {
-            display: none;
-            background-color: var(--card-bg);
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            margin-bottom: 20px;
-            border: 1px solid var(--border-color);
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        /* Formulários */
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            color: var(--text-dim);
-        }
-        
-        input, select, textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-size: 1rem;
-            background-color: var(--primary); /* Darker input */
-            color: var(--text-light);
-            transition: border-color 0.3s;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--secondary);
-            box-shadow: 0 0 5px rgba(6, 182, 212, 0.5); /* Neon glow */
-        }
-        
-        button {
-            background-color: var(--secondary);
-            color: var(--background);
-            border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: bold;
-            transition: all 0.3s;
-            margin: 4px 0;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            min-width: 100px; /* Melhor target touch */
-        }
-        
-        button:hover {
-            background-color: #0891b2; /* Darker Cyan */
-            transform: translateY(-1px);
-        }
-        
-        .btn-danger {
-            background-color: var(--danger);
-            color: white;
-        }
-        
-        .btn-danger:hover {
-            background-color: #c0392b;
-        }
-        
-        .btn-success {
-            background-color: var(--success);
-            color: var(--background);
-        }
-        
-        .btn-success:hover {
-            background-color: #059669;
-        }
-
-        .btn-warning {
-            background-color: var(--warning);
-            color: var(--background);
-        }
-
-        .btn-warning:hover {
-            background-color: #d9a405;
-        }
-
-        .btn-secondary {
-            background-color: var(--border-color);
-            color: var(--text-light);
-        }
-
-        .btn-secondary:hover {
-            background-color: #475569;
-        }
-        
-        /* Tabelas - Responsividade Aprimorada */
-        .table-responsive {
-            overflow-x: auto;
-            width: 100%;
-        }
-
-        table {
-            min-width: 800px; /* Garante que a tabela não encolha demais */
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-            vertical-align: middle;
-            color: var(--text-light);
-        }
-        
-        th {
-            background-color: var(--primary);
-            font-weight: 600;
-            text-transform: uppercase;
-            color: var(--secondary);
-            border-top: 1px solid var(--secondary);
-        }
-        
-        tr:hover {
-            background-color: #1e293b; /* Hover mais escuro */
-        }
-
-        td button {
-            margin: 2px;
-        }
-        
-        /* Status Badges */
-        .status-badge {
-            display: inline-block;
-            padding: 6px 10px;
-            border-radius: 9999px; /* Pill shape */
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
-        }
-        
-        .status-em-uso {
-            background-color: #2563eb; /* Blue */
-            color: white;
-        }
-        
-        .status-field-service {
-            background-color: var(--warning);
-            color: var(--background);
-        }
-        
-        .status-disponivel {
-            background-color: var(--success);
-            color: var(--background);
-        }
-        
-        .status-atrasado {
-            background-color: var(--danger);
-            color: white;
-        }
-        
-        /* Search and Export */
-        .search-box {
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
             flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+            transition: transform 0.3s ease;
         }
-        
-        .search-box input {
+
+        .logo-area {
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo-area h1 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            color: var(--primary);
+            letter-spacing: -1px;
+            text-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .nav-links {
+            padding: 1rem;
             flex-grow: 1;
         }
 
-        @media (min-width: 600px) {
-            .search-box {
-                flex-direction: row;
-                align-items: center;
-            }
-
-            .search-box button {
-                width: auto;
-                flex-shrink: 0;
-            }
-
-            .tab {
-                flex: 1;
-                text-align: center;
-            }
-
-            td button {
-                /* Permite que os botões fiquem lado a lado em desktop */
-                width: auto;
-                display: inline-block;
-            }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            color: var(--text-dim);
+            transition: all 0.2s;
+            font-weight: 500;
         }
-        
-        /* Stats Cards */
-        .stats {
+
+        .nav-item:hover {
+            background: rgba(56, 189, 248, 0.05);
+            color: var(--primary);
+        }
+
+        .nav-item.active {
+            background: var(--primary);
+            color: var(--bg-deep);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .nav-item svg {
+            margin-right: 12px;
+            width: 20px;
+        }
+
+        /* Área Principal */
+        main.content {
+            flex-grow: 1;
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+            max-width: calc(100vw - var(--sidebar-width));
+        }
+
+        header.top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .search-container {
+            position: relative;
+            width: 400px;
+        }
+
+        .search-container input {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 12px 12px 12px 40px;
+            border-radius: 10px;
+            color: white;
+            transition: border-color 0.3s;
+        }
+
+        .search-container input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .search-container svg {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-dim);
+        }
+
+        /* Dashboard Stats */
+        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
         }
-        
+
         .stat-card {
-            background-color: var(--card-bg);
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            border-left: 5px solid var(--secondary); /* Tech accent */
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
         }
-        
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.05) 50%);
+        }
+
         .stat-value {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin: 10px 0;
-            color: var(--secondary);
-            text-shadow: 0 0 5px rgba(6, 182, 212, 0.5); /* Glow effect */
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 0.5rem;
         }
-        
+
         .stat-label {
             color: var(--text-dim);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             text-transform: uppercase;
-        }
-        
-        /* Indicadores de prazo */
-        .overdue {
-            color: var(--danger);
-            font-weight: bold;
-        }
-        
-        .due-soon {
-            color: var(--warning);
-            font-weight: bold;
-        }
-        
-        .on-time {
-            color: var(--success);
-        }
-        
-        .separator {
-            border-top: 2px dashed var(--border-color);
-            margin: 20px 0;
-            padding-top: 10px;
+            letter-spacing: 1px;
         }
 
-        /* Responsividade para Abas em Mobile */
-        @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .tabs {
-                flex-wrap: wrap;
-            }
-            
-            .tab {
-                flex: 1 1 auto;
-                min-width: 40%;
-                text-align: center;
-                border-right: none;
-                border-bottom: 1px solid var(--border-color);
-            }
-
-            .tab:nth-child(even) {
-                border-right: none;
-            }
-            
-            .stats {
-                grid-template-columns: 1fr 1fr;
-            }
-
-            td button {
-                width: 100%;
-                margin: 2px 0;
-            }
+        /* Tabelas Futuristas */
+        .card-table {
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 1.5rem;
         }
 
-        /* --- Estilos do Modal Customizado --- */
-        #custom-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+
+        table {
             width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
+            border-collapse: separate;
+            border-spacing: 0 8px;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px;
+            color: var(--text-dim);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+
+        td {
+            padding: 16px 12px;
+            background: rgba(255,255,255,0.02);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        td:first-child { border-left: 1px solid var(--border); border-radius: 10px 0 0 10px; }
+        td:last-child { border-right: 1px solid var(--border); border-radius: 0 10px 10px 0; }
+
+        tr:hover td {
+            background: rgba(56, 189, 248, 0.05);
+            border-color: rgba(56, 189, 248, 0.2);
+        }
+
+        /* Badges e Status */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .badge-success { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .badge-warning { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .badge-danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        .badge-info { background: rgba(56, 189, 248, 0.1); color: var(--primary); }
+
+        /* Formulários */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .full-width { grid-column: span 2; }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            background: var(--bg-deep);
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 8px;
+            color: white;
+            font-size: 0.95rem;
+        }
+
+        button.btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary { background: var(--primary); color: var(--bg-deep); }
+        .btn-primary:hover { box-shadow: 0 0 15px var(--primary-glow); transform: translateY(-1px); }
+        
+        /* Modal Custom */
+        #modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.85);
+            backdrop-filter: blur(8px);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            padding: 20px;
         }
-        #custom-modal-content {
-            background-color: var(--card-bg);
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(6, 182, 212, 0.4); /* Neon shadow */
-            max-width: 95%;
-            width: 500px;
-            min-width: 300px;
-            transform: scale(0.9);
-            opacity: 0;
-            transition: all 0.3s ease-in-out;
-            border: 1px solid var(--secondary);
+
+        #modal-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            width: 100%;
+            max-width: 500px;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
         }
-        #custom-modal-overlay.visible #custom-modal-content {
-            transform: scale(1);
-            opacity: 1;
+
+        /* Responsividade Extrema */
+        @media (max-width: 1024px) {
+            aside.sidebar { width: 80px; }
+            .logo-area h1, .nav-item span { display: none; }
+            main.content { margin-left: 80px; max-width: calc(100vw - 80px); }
+            .search-container { width: 100%; }
         }
-        #custom-modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            border-bottom: 1px dashed var(--secondary);
-            padding-bottom: 10px;
+
+        @media (max-width: 768px) {
+            aside.sidebar {
+                top: auto;
+                bottom: 0;
+                width: 100%;
+                height: 70px;
+                flex-direction: row;
+                border-right: none;
+                border-top: 1px solid var(--border);
+            }
+            .logo-area { display: none; }
+            .nav-links { display: flex; justify-content: space-around; width: 100%; padding: 0; }
+            .nav-item { flex-direction: column; margin: 0; font-size: 0.6rem; padding: 10px; }
+            .nav-item svg { margin: 0 0 4px 0; }
+            main.content { margin-left: 0; padding: 1rem; padding-bottom: 90px; max-width: 100vw; }
+            header.top-bar { flex-direction: column; gap: 1rem; }
+            .form-grid { grid-template-columns: 1fr; }
+            .full-width { grid-column: auto; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
         }
-        #custom-modal-header h3 {
-            margin: 0;
-            color: var(--secondary);
-            font-size: 1.2rem;
-        }
-        #custom-modal-close {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--text-dim);
-        }
-        #custom-modal-close:hover {
-            color: var(--danger);
-        }
-        #custom-modal-body p {
-            margin-bottom: 10px;
-            color: var(--text-light);
-        }
-        #custom-modal-footer {
-            margin-top: 20px;
-            text-align: right;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-        /* Fim dos estilos de modal */
     </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <div class="header-content">
-                <h1>Sistema de Rastreamento de Equipamentos de TI</h1>
-                <div id="current-date"></div>
+
+<div class="app-wrapper">
+    <!-- Navegação Sidebar -->
+    <aside class="sidebar">
+        <div class="logo-area">
+            <h1>LOGIX</h1>
+        </div>
+        <nav class="nav-links">
+            <div class="nav-item active" onclick="switchTab('dashboard')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                <span>Dashboard</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('inventory')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                <span>Inventário</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('movement')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                <span>Saída/Entrada</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('history')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>Histórico</span>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Conteúdo Principal -->
+    <main class="content">
+        <header class="top-bar">
+            <div>
+                <h2 id="view-title">Dashboard Operacional</h2>
+                <p style="color: var(--text-dim); font-size: 0.8rem;" id="current-date"></p>
+            </div>
+            <div class="search-container">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" id="global-search" placeholder="Buscar por série, modelo ou usuário..." oninput="handleSearch(this.value)">
+            </div>
+        </header>
+
+        <!-- DASHBOARD TAB -->
+        <div id="dashboard-tab">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Ativos</div>
+                    <div class="stat-value" id="stat-total">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Em Operação</div>
+                    <div class="stat-value" id="stat-in-use">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Em Manutenção</div>
+                    <div class="stat-value" id="stat-maintenance">0</div>
+                </div>
+                <div class="stat-card" style="border-left: 4px solid var(--danger);">
+                    <div class="stat-label">Devoluções Atrasadas</div>
+                    <div class="stat-value" id="stat-overdue">0</div>
+                </div>
+            </div>
+
+            <div class="card-table">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3>Equipamentos Recentes</h3>
+                    <button class="btn btn-primary" onclick="switchTab('inventory')">Ver Todos</button>
+                </div>
+                <div class="table-responsive">
+                    <table id="recent-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Equipamento</th>
+                                <th>Série</th>
+                                <th>Status</th>
+                                <th>Local/Responsável</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashboard-body"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </header>
-    
-    <div class="container">
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-label">Total de Equipamentos</div>
-                <div class="stat-value" id="total-equipment">0</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Em Uso</div>
-                <div class="stat-value" id="in-use">0</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Com Field Service</div>
-                <div class="stat-value" id="with-field-service">0</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Atrasados</div>
-                <div class="stat-value overdue" id="overdue">0</div>
-            </div>
-        </div>
-        
-        <div class="tabs">
-            <div class="tab active" data-tab="equipment-list">Lista de Equipamentos</div>
-            <div class="tab" data-tab="add-equipment">Adicionar Equipamento</div>
-            <div class="tab" data-tab="check-out">Registrar Saída</div>
-            <div class="tab" data-tab="check-in">Registrar Retorno</div>
-            <div class="tab" data-tab="history">Histórico</div>
-        </div>
-        
-        <div id="equipment-list" class="tab-content active">
-            <div class="search-box">
-                <input type="text" id="search-equipment" placeholder="Pesquisar equipamentos, série ou responsável...">
-                <button class="btn-warning" onclick="downloadEquipmentCSV()">Exportar Inventário (.CSV)</button>
-            </div>
-            <div class="table-responsive">
-                <table id="equipment-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Tipo</th>
-                            <th>Modelo</th>
-                            <th>Número de Série</th>
-                            <th>Status</th>
-                            <th>Localização</th>
-                            <th>Prazo</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="equipment-table-body">
-                        <!-- Os dados dos equipamentos serão inseridos aqui via JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <div id="add-equipment" class="tab-content">
-            <!-- 1. Adicionar Equipamento Individual -->
-            <h2>Adicionar Novo Equipamento (Individual)</h2>
-            <form id="add-equipment-form">
-                <div class="form-group">
-                    <label for="equipment-type">Tipo de Equipamento</label>
-                    <select id="equipment-type" required>
-                        <option value="">Selecione o tipo</option>
-                        <option value="Laptop">Laptop</option>
-                        <option value="Desktop">Desktop</option>
-                        <option value="Tablet">Tablet</option>
-                        <option value="Smartphone">Smartphone</option>
-                        <option value="Monitor">Monitor</option>
-                        <option value="Impressora">Impressora</option>
-                        <option value="Outro">Outro</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="equipment-model">Modelo</label>
-                    <input type="text" id="equipment-model" required>
-                </div>
-                <div class="form-group">
-                    <label for="serial-number">Número de Série</label>
-                    <input type="text" id="serial-number" required>
-                </div>
-                <div class="form-group">
-                    <label for="initial-status">Status Inicial</label>
-                    <select id="initial-status">
-                        <option value="Disponível">Disponível</option>
-                        <option value="Em Uso">Em Uso</option>
-                        <option value="Field Service">Field Service</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn-success">Adicionar Equipamento</button>
-            </form>
 
-            <div class="separator"></div>
-
-            <!-- 2. Importar Equipamentos em Massa (CSV) -->
-            <h2>Importar Equipamentos em Lote (CSV)</h2>
-            <p style="color: var(--text-dim);">Selecione um arquivo CSV com seus equipamentos. O arquivo deve ter as colunas: <strong>Tipo</strong>, <strong>Modelo</strong>, <strong>Número de Série</strong> e <strong>Status Inicial</strong>.</p>
-            <form id="import-csv-form">
-                <div class="form-group">
-                    <label for="csv-file">Arquivo CSV</label>
-                    <input type="file" id="csv-file" accept=".csv" required>
-                </div>
-                <button type="button" class="btn-success" onclick="handleCSVUpload()">Importar do CSV</button>
-            </form>
-
-        </div>
-        
-        <div id="check-out" class="tab-content">
-            <h2>Registrar Saída de Equipamento</h2>
-            <form id="check-out-form">
-                <div class="form-group">
-                    <label for="checkout-equipment">Equipamento</label>
-                    <select id="checkout-equipment" required>
-                        <option value="">Selecione o equipamento</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="checkout-user">Responsável</label>
-                    <input type="text" id="checkout-user" required>
-                </div>
-                <div class="form-group">
-                    <label for="checkout-department">Departamento/Projeto</label>
-                    <input type="text" id="checkout-department" required>
-                </div>
-                <div class="form-group">
-                    <label for="checkout-deadline">Prazo de Devolução</label>
-                    <input type="date" id="checkout-deadline" required>
-                </div>
-                <div class="form-group">
-                    <label for="checkout-notes">Observações</label>
-                    <textarea id="checkout-notes" rows="3"></textarea>
-                </div>
-                <button type="submit" class="btn-success">Registrar Saída</button>
-            </form>
-        </div>
-        
-        <div id="check-in" class="tab-content">
-            <h2>Registrar Retorno de Equipamento</h2>
-            <form id="check-in-form">
-                <div class="form-group">
-                    <label for="checkin-equipment">Equipamento</label>
-                    <select id="checkin-equipment" required>
-                        <option value="">Selecione o equipamento</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="checkin-condition">Condição do Equipamento</label>
-                    <select id="checkin-condition" required>
-                        <option value="Excelente">Excelente</option>
-                        <option value="Boa">Boa</option>
-                        <option value="Regular">Regular</option>
-                        <option value="Necessita Manutenção">Necessita Manutenção</option>
-                        <option value="Danificado">Danificado</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="checkin-notes">Observações</label>
-                    <textarea id="checkin-notes" rows="3"></textarea>
-                </div>
-                <button type="submit" class="btn-success">Registrar Retorno</button>
-            </form>
-        </div>
-        
-        <div id="history" class="tab-content">
-            <h2>Histórico de Movimentações</h2>
-            <div class="search-box">
-                <input type="text" id="search-history" placeholder="Pesquisar no histórico...">
-                <button class="btn-warning" onclick="downloadHistoryCSV()">Exportar Histórico (.CSV)</button>
-            </div>
-            <div class="table-responsive">
-                <table id="history-table">
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Equipamento</th>
-                            <th>Tipo</th>
-                            <th>Responsável</th>
-                            <th>Detalhes</th>
-                        </tr>
-                    </thead>
-                    <tbody id="history-table-body">
-                        <!-- O histórico será inserido aqui via JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Dados iniciais (simulando um banco de dados com localStorage)
-        // ATENÇÃO: Embora eu esteja usando o localStorage, em um ambiente de produção real, 
-        // seria melhor usar um banco de dados como o Firestore para persistência de dados.
-        let equipment = JSON.parse(localStorage.getItem('equipment')) || [];
-        let history = JSON.parse(localStorage.getItem('history')) || [];
-        
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', function() {
-            // Adicionar data mínima para Prazo de Devolução (não permitir datas passadas)
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('checkout-deadline').setAttribute('min', today);
-
-            // Atualizar data atual
-            document.getElementById('current-date').textContent = new Date().toLocaleDateString('pt-BR');
-            
-            // Inicializar a interface
-            updateEquipmentList();
-            updateStats();
-            updateHistory();
-            populateCheckoutSelect();
-            populateCheckinSelect();
-            
-            // Configurar abas
-            setupTabs();
-            
-            // Configurar formulários
-            setupForms();
-            
-            // Configurar busca
-            setupSearch();
-        });
-        
-        // Configurar abas
-        function setupTabs() {
-            const tabs = document.querySelectorAll('.tab');
-            tabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    // Remover classe active de todas as abas e conteúdos
-                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                    
-                    // Adicionar classe active à aba clicada
-                    this.classList.add('active');
-                    
-                    // Mostrar o conteúdo correspondente
-                    const tabId = this.getAttribute('data-tab');
-                    document.getElementById(tabId).classList.add('active');
-                    
-                    // Re-popular selects ao mudar para as abas de Saída/Retorno
-                    if (tabId === 'check-out') populateCheckoutSelect();
-                    if (tabId === 'check-in') populateCheckinSelect();
-                });
-            });
-        }
-        
-        // Configurar formulários
-        function setupForms() {
-            // Formulário de adicionar equipamento
-            document.getElementById('add-equipment-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const type = document.getElementById('equipment-type').value;
-                const model = document.getElementById('equipment-model').value;
-                const serial = document.getElementById('serial-number').value;
-                const status = document.getElementById('initial-status').value;
-                
-                addEquipment(type, model, serial, status);
-                
-                // Limpar formulário
-                this.reset();
-            });
-            
-            // Formulário de saída
-            document.getElementById('check-out-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const equipmentId = document.getElementById('checkout-equipment').value;
-                const user = document.getElementById('checkout-user').value;
-                const department = document.getElementById('checkout-department').value;
-                const deadline = document.getElementById('checkout-deadline').value;
-                const notes = document.getElementById('checkout-notes').value;
-                
-                // Usar um modal personalizado em vez de alert/confirm
-                showCustomAlert('Saída registrada com sucesso!');
-                checkOutEquipment(equipmentId, user, department, deadline, notes);
-                
-                // Limpar formulário
-                this.reset();
-            });
-            
-            // Formulário de retorno
-            document.getElementById('check-in-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const equipmentId = document.getElementById('checkin-equipment').value;
-                const condition = document.getElementById('checkin-condition').value;
-                const notes = document.getElementById('checkin-notes').value;
-                
-                showCustomAlert('Retorno registrado com sucesso!');
-                checkInEquipment(equipmentId, condition, notes);
-                
-                // Limpar formulário
-                this.reset();
-            });
-        }
-        
-        // Configurar busca
-        function setupSearch() {
-            // Busca na lista de equipamentos
-            document.getElementById('search-equipment').addEventListener('input', function() {
-                updateEquipmentList(this.value);
-            });
-            
-            // Busca no histórico
-            document.getElementById('search-history').addEventListener('input', function() {
-                updateHistory(this.value);
-            });
-        }
-        
-        // Adicionar equipamento
-        function addEquipment(type, model, serial, status) {
-            // Verifica se o número de série já existe para evitar duplicatas
-            if (equipment.some(e => e.serial.toUpperCase() === serial.toUpperCase())) {
-                showCustomAlert(`Equipamento com Número de Série "${serial}" já existe e foi ignorado.`, 'Erro de Duplicidade');
-                return;
-            }
-
-            const newEquipment = {
-                id: generateId(),
-                type: type,
-                model: model,
-                serial: serial,
-                status: status,
-                location: status === 'Disponível' ? 'Estoque' : (status === 'Field Service' ? 'Em Reparo/Trânsito' : ''),
-                currentUser: '',
-                department: '',
-                checkoutDate: '',
-                deadline: '',
-                condition: 'Novo'
-            };
-            
-            equipment.push(newEquipment);
-            saveData();
-            
-            // Adicionar ao histórico
-            addHistory(newEquipment.id, 'Adicionado', `Equipamento ${type} - ${model} adicionado ao sistema. Status inicial: ${status}`);
-            
-            // Atualizar interface
-            updateEquipmentList();
-            updateStats();
-            populateCheckoutSelect();
-            populateCheckinSelect();
-            
-            return true; // Indica sucesso na adição
-        }
-
-        // --- FUNÇÕES DE IMPORTAÇÃO CSV EM MASSA ---
-
-        // Função principal para lidar com o upload do arquivo CSV
-        function handleCSVUpload() {
-            const fileInput = document.getElementById('csv-file');
-            const file = fileInput.files[0];
-
-            if (!file) {
-                showCustomAlert('Por favor, selecione um arquivo CSV para importar.', 'Erro');
-                return;
-            }
-
-            const reader = new FileReader();
-
-            reader.onload = function(event) {
-                try {
-                    const csvContent = event.target.result;
-                    const result = parseCSV(csvContent);
-                    processImport(result);
-                } catch (error) {
-                    console.error('Erro ao processar o CSV:', error);
-                    showCustomAlert('Ocorreu um erro ao ler o arquivo CSV. Verifique a formatação.', 'Erro de Processamento');
-                }
-            };
-
-            reader.onerror = function() {
-                showCustomAlert('Falha ao ler o arquivo.', 'Erro de Leitura');
-            };
-
-            reader.readAsText(file, 'UTF-8');
-        }
-
-        // Função para analisar o conteúdo do CSV
-        function parseCSV(csvText) {
-            // Detecta o delimitador: , (vírgula) ou ; (ponto e vírgula)
-            const firstLine = csvText.split('\n')[0];
-            const delimiter = firstLine.includes(';') ? ';' : ',';
-            
-            const lines = csvText.split('\n').filter(line => line.trim() !== '');
-            if (lines.length === 0) return { imported: [], errors: [], total: 0 };
-
-            // Funções para limpar e processar a célula
-            const cleanValue = val => val.trim().replace(/^"|"$/g, '').replace(/""/g, '"');
-
-            // Analisa o cabeçalho
-            const header = lines[0].split(delimiter).map(h => cleanValue(h).toUpperCase().replace(/\s/g, '_'));
-            
-            const expectedHeaders = ['TIPO', 'MODELO', 'NÚMERO_DE_SÉRIE', 'STATUS_INICIAL'];
-            const headerMap = {};
-            
-            expectedHeaders.forEach(expected => {
-                const index = header.findIndex(h => h.includes(expected.replace(/_/g, ' ')));
-                if (index !== -1) {
-                    headerMap[expected] = index;
-                } else if (expected === 'NÚMERO_DE_SÉRIE') {
-                    // Tenta 'SERIAL' como alternativa para Número de Série
-                    const serialIndex = header.findIndex(h => h.includes('SERIAL'));
-                    if (serialIndex !== -1) headerMap[expected] = serialIndex;
-                } else if (expected === 'STATUS_INICIAL') {
-                    // Tenta 'STATUS' como alternativa
-                    const statusIndex = header.findIndex(h => h.includes('STATUS'));
-                    if (statusIndex !== -1) headerMap[expected] = statusIndex;
-                }
-            });
-
-            // Valida se todas as colunas essenciais foram encontradas
-            if (Object.keys(headerMap).length !== expectedHeaders.length) {
-                throw new Error(`Cabeçalhos obrigatórios não encontrados. Esperados: ${expectedHeaders.join(', ')}`);
-            }
-
-            const importedData = [];
-            const errors = [];
-
-            for (let i = 1; i < lines.length; i++) {
-                const row = lines[i];
-                if (row.trim() === '') continue;
-
-                // Simple split. Para CSV mais complexo, uma biblioteca seria melhor, mas tentaremos
-                // suportar aspas para valores com o delimitador
-                const columns = row.split(delimiter).map(cleanValue);
-
-                const record = {
-                    type: columns[headerMap['TIPO']],
-                    model: columns[headerMap['MODELO']],
-                    serial: columns[headerMap['NÚMERO_DE_SÉRIE']],
-                    status: columns[headerMap['STATUS_INICIAL']],
-                    lineNumber: i + 1
-                };
-
-                // Validação básica de dados
-                if (!record.type || !record.model || !record.serial) {
-                    errors.push(`Linha ${record.lineNumber}: Campos Tipo, Modelo ou Série ausentes.`);
-                    continue;
-                }
-                
-                // Normaliza o status, se não for um dos esperados, usa 'Disponível'
-                const validStatus = ['DISPONÍVEL', 'EM USO', 'FIELD SERVICE'];
-                const statusUpper = record.status.toUpperCase();
-                
-                if (validStatus.includes(statusUpper)) {
-                    record.status = statusUpper.charAt(0) + statusUpper.slice(1).toLowerCase();
-                } else {
-                    record.status = 'Disponível'; // Fallback
-                    errors.push(`Linha ${record.lineNumber}: Status "${record.status}" inválido. Definido como "Disponível".`);
-                }
-
-                importedData.push(record);
-            }
-
-            return { imported: importedData, errors: errors, total: lines.length - 1 };
-        }
-
-        // Função para processar os dados importados e adicioná-los ao sistema
-        function processImport(result) {
-            const { imported, errors, total } = result;
-            let successCount = 0;
-            let failureCount = 0;
-
-            imported.forEach(item => {
-                // A função addEquipment já lida com a validação de duplicidade de serial
-                const added = addEquipment(item.type, item.model, item.serial, item.status);
-                if (added) {
-                    successCount++;
-                } else {
-                    failureCount++; // Falha geralmente devido a duplicidade de serial
-                }
-            });
-
-            // Limpa o campo de arquivo após a importação
-            document.getElementById('csv-file').value = '';
-
-            let summaryMessage = `
-                <p><strong>Total de linhas processadas no arquivo:</strong> ${total}</p>
-                <p style="color: var(--success);"><strong>Equipamentos adicionados com sucesso:</strong> ${successCount}</p>
-                <p style="color: var(--danger);"><strong>Equipamentos ignorados (erros/duplicatas):</strong> ${failureCount + errors.length}</p>
-            `;
-            
-            if (errors.length > 0) {
-                summaryMessage += `
-                    <div style="margin-top: 15px; max-height: 150px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 4px; background-color: var(--primary);">
-                        <strong style="color: var(--text-light);">Detalhes dos Erros de Formatação:</strong>
-                        <ul style="padding-left: 20px;">
-                            ${errors.map(err => `<li style="list-style-type: disc; color: var(--text-dim);">${err}</li>`).join('')}
-                        </ul>
+        <!-- INVENTORY TAB -->
+        <div id="inventory-tab" style="display:none;">
+            <div class="card-table">
+                <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 2rem;">
+                    <h3>Gestão de Inventário</h3>
+                    <div style="display:flex; gap: 8px;">
+                        <button class="btn btn-primary" onclick="openAddModal()">+ Novo Item</button>
+                        <button class="btn" style="background: var(--border);" onclick="exportInventory()">CSV</button>
                     </div>
-                `;
-            } else if (failureCount > 0) {
-                summaryMessage += `<p style="margin-top: 10px; color: var(--text-dim);">As falhas geralmente são devido a **Números de Série duplicados** já existentes no inventário.</p>`;
-            }
-
-
-            showCustomAlert(summaryMessage, `Importação de ${successCount} Equipamentos Concluída`);
-
-            // Força a atualização da interface
-            updateEquipmentList();
-            updateStats();
-        }
-
-        // --- FIM DAS FUNÇÕES DE IMPORTAÇÃO CSV EM MASSA ---
-
-        // Registrar saída
-        function checkOutEquipment(equipmentId, user, department, deadline, notes) {
-            const eq = equipment.find(e => e.id === equipmentId);
-            if (eq) {
-                eq.status = 'Em Uso';
-                eq.currentUser = user;
-                eq.department = department;
-                eq.location = `Em Uso: ${department}`;
-                eq.checkoutDate = new Date().toISOString().split('T')[0];
-                eq.deadline = deadline;
-                
-                saveData();
-                
-                // Adicionar ao histórico
-                addHistory(equipmentId, 'Saída', `Equipamento entregue para ${user} (${department}). Prazo: ${formatDate(deadline)}. ${notes}`, user);
-                
-                // Atualizar interface
-                updateEquipmentList();
-                updateStats();
-                populateCheckoutSelect();
-                populateCheckinSelect();
-            }
-        }
-        
-        // Registrar retorno
-        function checkInEquipment(equipmentId, condition, notes) {
-            const eq = equipment.find(e => e.id === equipmentId);
-            if (eq) {
-                // Captura o usuário antes de limpar os dados
-                const formerUser = eq.currentUser;
-                
-                eq.status = 'Disponível';
-                eq.location = 'Estoque';
-                eq.condition = condition;
-                
-                // Adicionar ao histórico
-                addHistory(equipmentId, 'Retorno', `Equipamento retornado por ${formerUser || 'N/A'}. Condição: ${condition}. ${notes}`, formerUser || 'Sistema');
-                
-                // Limpar dados de empréstimo
-                eq.currentUser = '';
-                eq.department = '';
-                eq.checkoutDate = '';
-                eq.deadline = '';
-                
-                saveData();
-                
-                // Atualizar interface
-                updateEquipmentList();
-                updateStats();
-                populateCheckoutSelect();
-                populateCheckinSelect();
-            }
-        }
-        
-        // Abre o modal de edição
-        function editEquipmentDetails(id) {
-            const eq = equipment.find(e => e.id === id);
-            if (!eq) {
-                showCustomAlert('Equipamento não encontrado.', 'Erro');
-                return;
-            }
-
-            // Gerar o HTML do formulário de edição
-            const bodyContent = `
-                <form id="edit-equipment-form">
-                    <input type="hidden" id="edit-id" value="${eq.id}">
-                    <div class="form-group">
-                        <label for="edit-type">Tipo de Equipamento</label>
-                        <select id="edit-type" required>
-                            ${['Laptop', 'Desktop', 'Tablet', 'Smartphone', 'Monitor', 'Impressora', 'Outro'].map(t => 
-                                `<option value="${t}" ${eq.type === t ? 'selected' : ''}>${t}</option>`
-                            ).join('')}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-model">Modelo</label>
-                        <input type="text" id="edit-model" value="${eq.model}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-serial">Número de Série</label>
-                        <input type="text" id="edit-serial" value="${eq.serial}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-condition">Condição Atual</label>
-                        <select id="edit-condition" required>
-                            ${['Novo', 'Excelente', 'Boa', 'Regular', 'Necessita Manutenção', 'Danificado'].map(c => 
-                                `<option value="${c}" ${eq.condition === c ? 'selected' : ''}>${c}</option>`
-                            ).join('')}
-                        </select>
-                    </div>
-                </form>
-            `;
-
-            const footerContent = `
-                <button class="btn-success" onclick="saveEquipmentEdit('${eq.id}')">Salvar Alterações</button>
-                <button class="btn-secondary" onclick="hideCustomModal()">Cancelar</button>
-            `;
-
-            showCustomModal(bodyContent, `Editar Equipamento: ${eq.id}`, footerContent);
-        }
-
-        // Salva as alterações do equipamento
-        function saveEquipmentEdit(id) {
-            const eqIndex = equipment.findIndex(e => e.id === id);
-            if (eqIndex === -1) {
-                showCustomAlert('Equipamento não encontrado.', 'Erro');
-                hideCustomModal();
-                return;
-            }
-
-            const oldEq = equipment[eqIndex];
-            const newType = document.getElementById('edit-type').value;
-            const newModel = document.getElementById('edit-model').value;
-            const newSerial = document.getElementById('edit-serial').value;
-            const newCondition = document.getElementById('edit-condition').value;
-
-            let changes = [];
-            
-            if (oldEq.type !== newType) changes.push(`Tipo: de "${oldEq.type}" para "${newType}"`);
-            if (oldEq.model !== newModel) changes.push(`Modelo: de "${oldEq.model}" para "${newModel}"`);
-            if (oldEq.serial !== newSerial) changes.push(`Nº de Série: de "${oldEq.serial}" para "${newSerial}"`);
-            if (oldEq.condition !== newCondition) changes.push(`Condição: de "${oldEq.condition}" para "${newCondition}"`);
-
-            if (changes.length > 0) {
-                // Atualiza o objeto
-                equipment[eqIndex].type = newType;
-                equipment[eqIndex].model = newModel;
-                equipment[eqIndex].serial = newSerial;
-                equipment[eqIndex].condition = newCondition;
-
-                saveData();
-                addHistory(id, 'Edição', `Detalhes do equipamento atualizados: ${changes.join('; ')}`);
-                
-                updateEquipmentList();
-                showCustomAlert('Alterações salvas com sucesso!', 'Edição Concluída');
-            } else {
-                showCustomAlert('Nenhuma alteração detectada.', 'Edição');
-            }
-
-            hideCustomModal();
-        }
-        
-        // Confirmação para Enviar para Manutenção (Field Service)
-        function confirmMaintenanceRequest(id) {
-            const eq = equipment.find(e => e.id === id);
-            if (!eq) return;
-
-            let content = `
-                <p>Tem certeza que deseja enviar o equipamento <strong>${eq.id} - ${eq.model}</strong> para **Field Service/Manutenção**?</p>
-                <p style="color: var(--text-dim);">O status atual é <strong>${eq.status}</strong>, com o responsável <strong>${eq.currentUser || 'N/A'}</strong>.</p>
-            `;
-            if (eq.status === 'Em Uso') {
-                content += `<p style="color: var(--danger); font-weight: bold;">Esta ação irá **interromper o empréstimo** e marcar o item para manutenção.</p>`;
-            } else {
-                content += `<p>Esta ação irá marcar o equipamento como Field Service (Em Reparo/Trânsito).</p>`;
-            }
-
-            content += `<div class="form-group" style="margin-top: 20px;"><label for="maintenance-notes">Motivo da Manutenção (Obrigatório)</label><textarea id="maintenance-notes" rows="2" required placeholder="Descreva o motivo pelo qual o equipamento está sendo enviado para Field Service."></textarea></div>`;
-            
-            // Usa o modal customizado com botões dinâmicos que chamam a função global
-            showCustomModal(content, 'Confirmar Envio para Manutenção', `
-                <button class="btn-success" onclick="executeMaintenanceAndHide('${id}')">Confirmar Envio</button>
-                <button class="btn-secondary" onclick="hideCustomModal()">Cancelar</button>
-            `);
-
-            // Função global temporária para tratar a submissão do modal
-            window.executeMaintenanceAndHide = function(equipmentId) {
-                const notes = document.getElementById('maintenance-notes').value.trim();
-                if (!notes) {
-                    showCustomAlert('O motivo da manutenção é obrigatório.', 'Erro de Validação');
-                    return;
-                }
-                markForMaintenance(equipmentId, notes);
-                delete window.executeMaintenanceAndHide; // Limpa a função global
-                hideCustomModal();
-            };
-        }
-
-        // Envia o equipamento para Field Service/Manutenção
-        function markForMaintenance(id, notes) {
-            const eq = equipment.find(e => e.id === id);
-            if (eq) {
-                const formerStatus = eq.status;
-                const formerUser = eq.currentUser;
-                
-                eq.status = 'Field Service';
-                eq.location = 'Em Reparo/Trânsito';
-
-                // Limpa dados de empréstimo se estava em uso
-                if (formerStatus === 'Em Uso') {
-                    eq.currentUser = '';
-                    eq.department = '';
-                    eq.checkoutDate = '';
-                    eq.deadline = '';
-                }
-
-                saveData();
-                
-                // Adicionar ao histórico
-                addHistory(id, 'Manutenção (Saída)', `Equipamento enviado para Field Service/Manutenção. Motivo: ${notes}. Status anterior: ${formerStatus}. Responsável anterior (se aplicável): ${formerUser || 'N/A'}`, 'Sistema');
-                
-                // Atualizar interface
-                updateEquipmentList();
-                updateStats();
-                populateCheckoutSelect();
-                populateCheckinSelect();
-                
-                showCustomAlert('Equipamento enviado para Field Service com sucesso!', 'Ação Concluída');
-            }
-        }
-        
-        // --- FUNÇÕES DE DESATIVAÇÃO/REMOÇÃO ---
-
-        // Confirmação para Desativação/Remoção Definitiva
-        function confirmRetirement(id) {
-            const eq = equipment.find(e => e.id === id);
-            if (!eq) return;
-
-            const content = `
-                <p style="color: var(--danger); font-weight: bold;"><strong>ATENÇÃO:</strong> Esta ação irá **REMOVER DEFINITIVAMENTE** o equipamento <strong>${eq.id} - ${eq.model}</strong> do inventário principal.</p>
-                <p style="color: var(--text-dim);">O histórico de movimentações será mantido.</p>
-                <div class="form-group" style="margin-top: 20px;">
-                    <label for="retirement-reason">Motivo da Desativação (Obrigatório)</label>
-                    <select id="retirement-reason" required>
-                        <option value="">Selecione o motivo</option>
-                        <option value="Descarte por Obsolescência">Descarte por Obsolescência</option>
-                        <option value="Quebra/Dano Irreparável">Quebra/Dano Irreparável</option>
-                        <option value="Roubo/Perda">Roubo/Perda</option>
-                        <option value="Venda/Doação">Venda/Doação</option>
-                        <option value="Outro">Outro</option>
-                    </select>
                 </div>
-            `;
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Patrimônio</th>
+                                <th>Tipo/Modelo</th>
+                                <th>Série</th>
+                                <th>Status</th>
+                                <th>Condição</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-            // Usa o modal customizado com botões dinâmicos que chamam a função global
-            showCustomModal(content, 'Confirmar Desativação de Equipamento', `
-                <button class="btn-danger" onclick="executeRetirementAndHide('${id}')">Confirmar Desativação</button>
-                <button class="btn-secondary" onclick="hideCustomModal()">Cancelar</button>
-            `);
-
-            // Função global temporária para tratar a submissão do modal
-            window.executeRetirementAndHide = function(equipmentId) {
-                const reason = document.getElementById('retirement-reason').value;
-                if (!reason) {
-                    showCustomAlert('Por favor, selecione um motivo para a desativação.', 'Erro de Validação');
-                    return;
-                }
-                retireEquipment(equipmentId, reason);
-                delete window.executeRetirementAndHide; // Limpa a função global
-            };
-        }
-
-        // Remove o equipamento do array principal
-        function retireEquipment(id, reason) {
-            const eqIndex = equipment.findIndex(e => e.id === id);
-            if (eqIndex !== -1) {
-                const eq = equipment[eqIndex];
-                equipment.splice(eqIndex, 1); // Remove do array
-
-                // Adiciona ao histórico o registro de desativação
-                addHistory(id, 'Desativado/Removido', `Equipamento **REMOVIDO** do inventário. Motivo: ${reason}. (Tipo: ${eq.type}, Modelo: ${eq.model})`, 'Sistema');
-
-                saveData();
-                
-                // Atualizar interface
-                updateEquipmentList();
-                updateStats();
-                populateCheckoutSelect();
-                populateCheckinSelect();
-                
-                showCustomAlert(`Equipamento ${id} desativado com sucesso. Foi removido do inventário principal, mas seu histórico foi mantido.`, 'Desativação Concluída');
-            }
-        }
-        
-        // --- FIM DAS FUNÇÕES DE DESATIVAÇÃO/REMOÇÃO ---
-
-        // --- NOVAS FUNÇÕES DE DOWNLOAD CSV ---
-
-        // Função genérica para criar e acionar o download do arquivo CSV
-        function downloadCSV(csv, filename) {
-            // Cria um Blob (objeto de arquivo) com o conteúdo CSV
-            // Usamos 'text/csv;charset=utf-8' e adicionamos BOM para garantir caracteres especiais (como acentos) no Excel
-            const BOM = "\uFEFF"; 
-            const csvFile = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
-            const downloadLink = document.createElement('a');
-
-            downloadLink.download = filename;
-            downloadLink.href = window.URL.createObjectURL(csvFile);
-            downloadLink.style.display = 'none';
-
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
-        }
-
-        // Função para exportar os dados do inventário (equipment)
-        function downloadEquipmentCSV() {
-            const headers = ["ID", "Tipo", "Modelo", "Serial", "Status", "Condicao", "Responsavel", "Departamento", "Data Saida", "Prazo Devolucao", "Localizacao"];
-            
-            const data = equipment.map(eq => [
-                eq.id,
-                eq.type,
-                eq.model,
-                eq.serial,
-                eq.status,
-                eq.condition,
-                eq.currentUser,
-                eq.department,
-                formatDate(eq.checkoutDate),
-                formatDate(eq.deadline),
-                eq.location
-            ]);
-
-            // Monta o CSV, usando ponto-e-vírgula (;) como separador (padrão Brasil/Europa para Excel)
-            let csv = headers.join(";") + "\n";
-            data.forEach(row => {
-                // Envolve cada item em aspas duplas e escapa aspas internas
-                csv += row.map(item => `"${(item ? item.toString() : '').replace(/"/g, '""')}"`).join(";") + "\n";
-            });
-
-            downloadCSV(csv, 'inventario_equipamentos.csv');
-            showCustomAlert('Inventário exportado com sucesso para CSV!', 'Download Concluído');
-        }
-
-        // Função para exportar os dados do histórico (history)
-        function downloadHistoryCSV() {
-            const headers = ["Data/Hora", "Equipamento ID", "Tipo Evento", "Tipo Equipamento", "Responsavel", "Detalhes"];
-            
-            const data = history.map(rec => [
-                formatDateTime(rec.date),
-                rec.equipmentId,
-                rec.type,
-                rec.equipmentType,
-                rec.user,
-                rec.details
-            ]);
-
-            // Monta o CSV, usando ponto-e-vírgula (;) como separador (padrão Brasil/Europa para Excel)
-            let csv = headers.join(";") + "\n";
-            data.forEach(row => {
-                // Envolve cada item em aspas duplas e escapa aspas internas
-                csv += row.map(item => `"${(item ? item.toString() : '').replace(/"/g, '""')}"`).join(";") + "\n";
-            });
-
-            downloadCSV(csv, 'historico_movimentacoes.csv');
-            showCustomAlert('Histórico exportado com sucesso para CSV!', 'Download Concluído');
-        }
-
-        // --- FIM DAS NOVAS FUNÇÕES DE DOWNLOAD CSV ---
-
-        // Atualizar lista de equipamentos
-        function updateEquipmentList(searchTerm = '') {
-            const tbody = document.getElementById('equipment-table-body');
-            tbody.innerHTML = '';
-            
-            const filteredEquipment = equipment.filter(eq => {
-                if (!searchTerm) return true;
-                
-                const searchLower = searchTerm.toLowerCase();
-                return (
-                    eq.id.toLowerCase().includes(searchLower) ||
-                    eq.type.toLowerCase().includes(searchLower) ||
-                    eq.model.toLowerCase().includes(searchLower) ||
-                    eq.serial.toLowerCase().includes(searchLower) ||
-                    eq.status.toLowerCase().includes(searchLower) ||
-                    (eq.currentUser && eq.currentUser.toLowerCase().includes(searchLower))
-                );
-            });
-            
-            // Ordenar por ID para consistência
-            filteredEquipment.sort((a, b) => a.id.localeCompare(b.id));
-            
-            filteredEquipment.forEach(eq => {
-                const row = document.createElement('tr');
-                
-                // Lógica de atraso
-                const isOverdue = eq.deadline && eq.status === 'Em Uso' && new Date(eq.deadline) < new Date();
-                const today = new Date();
-                today.setHours(0, 0, 0, 0); 
-                const deadlineDate = eq.deadline ? new Date(eq.deadline + 'T00:00:00Z') : null; // Usa T00:00:00Z para UTC
-
-                let dueSoon = false;
-                if (deadlineDate && !isOverdue && eq.status === 'Em Uso') {
-                    const diffTime = deadlineDate.getTime() - today.getTime();
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    dueSoon = diffDays > 0 && diffDays <= 3;
-                }
-                
-                let statusClass = '';
-                let statusLabel = eq.status;
-
-                if (eq.status === 'Em Uso') {
-                    statusClass = isOverdue ? 'status-atrasado' : (dueSoon ? 'status-field-service' : 'status-em-uso');
-                    if (isOverdue) statusLabel += ' (Atrasado)';
-                    else if (dueSoon) statusLabel += ' (Prazo Próximo)';
-                }
-                else if (eq.status === 'Field Service') statusClass = 'status-field-service';
-                else if (eq.status === 'Disponível') statusClass = 'status-disponivel';
-                
-                let locationText = eq.currentUser || eq.location;
-                if (!locationText && eq.status === 'Field Service') locationText = 'Em Reparo/Trânsito';
-
-                let deadlineText = '-';
-                let deadlineClass = '';
-                if (eq.deadline && eq.status === 'Em Uso') {
-                    deadlineText = formatDate(eq.deadline);
-                    if (isOverdue) deadlineClass = 'overdue';
-                    else if (dueSoon) deadlineClass = 'due-soon';
-                    else deadlineClass = 'on-time';
-                }
-                
-                // Construção dinâmica dos botões de ação
-                let actionButtons = `
-                    <button class="btn-warning" onclick="editEquipmentDetails('${eq.id}')">Editar</button>
-                    <button class="btn-secondary" onclick="viewEquipmentDetails('${eq.id}')">Detalhes</button>
-                `;
-
-                // Botão de Forçar Retorno (se não estiver Disponível)
-                if (eq.status !== 'Disponível') {
-                    actionButtons += `<button class="btn-danger" onclick="confirmForceCheckIn('${eq.id}')">Forçar Retorno</button>`;
-                }
-
-                // Botão de Field Service (se não estiver Field Service)
-                if (eq.status !== 'Field Service') {
-                     actionButtons += `<button class="btn-secondary" style="background-color: #0d9488;" onclick="confirmMaintenanceRequest('${eq.id}')">Manutenção/FS</button>`; 
-                }
-
-                // Novo Botão de Desativação
-                actionButtons += `<button class="btn-danger" onclick="confirmRetirement('${eq.id}')">Desativar/Remover</button>`;
-                
-                row.innerHTML = `
-                    <td>${eq.id}</td>
-                    <td>${eq.type}</td>
-                    <td>${eq.model}</td>
-                    <td>${eq.serial}</td>
-                    <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
-                    <td>${locationText}</td>
-                    <td class="${deadlineClass}">${deadlineText}</td>
-                    <td>
-                        ${actionButtons}
-                    </td>
-                `;
-                
-                tbody.appendChild(row);
-            });
-        }
-        
-        // Atualizar estatísticas
-        function updateStats() {
-            const total = equipment.length;
-            const inUse = equipment.filter(e => e.status === 'Em Uso').length;
-            const withFieldService = equipment.filter(e => e.status === 'Field Service').length;
-            const overdue = equipment.filter(e => {
-                // Checa se está em uso e se a data limite é anterior à data de hoje
-                const isOverdue = e.deadline && e.status === 'Em Uso' && new Date(e.deadline) < new Date(new Date().toDateString());
-                return isOverdue;
-            }).length;
-            
-            document.getElementById('total-equipment').textContent = total;
-            document.getElementById('in-use').textContent = inUse;
-            document.getElementById('with-field-service').textContent = withFieldService;
-            document.getElementById('overdue').textContent = overdue;
-            
-            // Adiciona classe de cor para o número de atrasados
-            const overdueElement = document.getElementById('overdue');
-            overdueElement.classList.toggle('overdue', overdue > 0);
-        }
-        
-        // Atualizar histórico
-        function updateHistory(searchTerm = '') {
-            const tbody = document.getElementById('history-table-body');
-            tbody.innerHTML = '';
-            
-            const filteredHistory = history.filter(record => {
-                if (!searchTerm) return true;
-                
-                const searchLower = searchTerm.toLowerCase();
-                return (
-                    record.equipmentId.toLowerCase().includes(searchLower) ||
-                    record.type.toLowerCase().includes(searchLower) ||
-                    record.details.toLowerCase().includes(searchLower) ||
-                    (record.user && record.user.toLowerCase().includes(searchLower))
-                );
-            });
-            
-            // Ordenar por data (mais recente primeiro)
-            filteredHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
-            
-            filteredHistory.forEach(record => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${formatDateTime(record.date)}</td>
-                    <td>${record.equipmentId}</td>
-                    <td>${record.type}</td>
-                    <td>${record.user || '-'}</td>
-                    <td>${record.details}</td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-        
-        // Popular select de saída
-        function populateCheckoutSelect() {
-            const select = document.getElementById('checkout-equipment');
-            select.innerHTML = '<option value="">Selecione o equipamento</option>';
-            
-            equipment.filter(e => e.status === 'Disponível').forEach(eq => {
-                const option = document.createElement('option');
-                option.value = eq.id;
-                option.textContent = `${eq.id} - ${eq.type} ${eq.model}`;
-                select.appendChild(option);
-            });
-        }
-        
-        // Popular select de retorno
-        function populateCheckinSelect() {
-            const select = document.getElementById('checkin-equipment');
-            select.innerHTML = '<option value="">Selecione o equipamento</option>';
-            
-            equipment.filter(e => e.status !== 'Disponível').forEach(eq => {
-                const option = document.createElement('option');
-                option.value = eq.id;
-                option.textContent = `${eq.id} - ${eq.type} ${eq.model} (${eq.currentUser || eq.location})`;
-                select.appendChild(option);
-            });
-        }
-        
-        // Adicionar registro ao histórico
-        function addHistory(equipmentId, type, details, user = 'Sistema') {
-            const eq = equipment.find(e => e.id === equipmentId);
-            
-            const record = {
-                date: new Date().toISOString(),
-                equipmentId: equipmentId,
-                type: type,
-                user: user,
-                details: details,
-                equipmentType: eq ? eq.type : 'N/A' // Adicionar tipo para facilitar a busca
-            };
-            
-            history.push(record);
-            saveData();
-            updateHistory(); // Atualiza o histórico após adicionar um novo registro
-        }
-        
-        // Visualizar detalhes do equipamento (usando a função de alerta customizada)
-        function viewEquipmentDetails(id) {
-            const eq = equipment.find(e => e.id === id);
-            if (eq) {
-                let details = `
-                    <h3 style="color: var(--secondary);">Detalhes do Equipamento: ${eq.id}</h3>
-                    <p><strong>Tipo:</strong> ${eq.type}</p>
-                    <p><strong>Modelo:</strong> ${eq.model}</p>
-                    <p><strong>Série:</strong> ${eq.serial}</p>
-                    <p><strong>Status:</strong> <span class="status-badge ${eq.status === 'Em Uso' ? 'status-em-uso' : eq.status === 'Field Service' ? 'status-field-service' : 'status-disponivel'}">${eq.status}</span></p>
-                    <p><strong>Condição:</strong> ${eq.condition}</p>
-                `;
-                
-                if (eq.currentUser) {
-                    details += `
-                        <hr style="margin: 15px 0; border: 0; border-top: 1px dashed var(--border-color);">
-                        <p><strong>Responsável:</strong> ${eq.currentUser}</p>
-                        <p><strong>Departamento:</strong> ${eq.department}</p>
-                        <p><strong>Data de Saída:</strong> ${formatDate(eq.checkoutDate)}</p>
-                        <p><strong>Prazo:</strong> <span class="${new Date(eq.deadline) < new Date() ? 'overdue' : 'on-time'}">${formatDate(eq.deadline)}</span></p>
-                    `;
-                } else {
-                    details += `<p><strong>Localização:</strong> ${eq.location}</p>`;
-                }
-                
-                showCustomModal(details, 'Detalhes do Equipamento');
-            }
-        }
-
-        // Confirmação para Forçar Retorno (usando a função de modal customizada)
-        function confirmForceCheckIn(id) {
-            const eq = equipment.find(e => e.id === id);
-            if (!eq) return;
-
-            const content = `
-                <p>Tem certeza que deseja forçar o retorno do equipamento <strong>${eq.id} - ${eq.model}</strong>?</p>
-                <p style="color: var(--text-dim);">O status atual é <strong>${eq.status}</strong>, com o responsável <strong>${eq.currentUser || 'N/A'}</strong>.</p>
-                <p class="overdue" style="font-weight: bold; margin-top: 10px;">Esta ação irá marcar o equipamento como Disponível (Estoque).</p>
-            `;
-
-            showCustomConfirmation(content, 'Confirmar Retorno Forçado', () => forceCheckIn(id));
-        }
-
-        // Forçar retorno de equipamento
-        function forceCheckIn(id) {
-            const eq = equipment.find(e => e.id === id);
-            if (eq) {
-                const formerUser = eq.currentUser; // Captura o usuário antes de limpar os dados
-                
-                eq.status = 'Disponível';
-                eq.location = 'Estoque';
-                
-                // Adicionar ao histórico
-                addHistory(id, 'Retorno Forçado', `Equipamento retornado forçadamente pelo sistema (Responsável anterior: ${formerUser || 'N/A'})`, 'Sistema');
-                
-                // Limpar dados de empréstimo
-                eq.currentUser = '';
-                eq.department = '';
-                eq.checkoutDate = '';
-                eq.deadline = '';
-                
-                saveData();
-                
-                // Atualizar interface
-                updateEquipmentList();
-                updateStats();
-                populateCheckoutSelect();
-                populateCheckinSelect();
-                
-                showCustomAlert('Retorno forçado realizado com sucesso!', 'Ação Concluída');
-            }
-        }
-        
-        // Salvar dados no localStorage
-        function saveData() {
-            localStorage.setItem('equipment', JSON.stringify(equipment));
-            localStorage.setItem('history', JSON.stringify(history));
-        }
-        
-        // Gerar ID único
-        function generateId() {
-            // Gera um ID simples e único
-            return 'EQ' + Date.now().toString().slice(-6) + Math.floor(Math.random() * 100);
-        }
-        
-        // Formatar data (DD/MM/AAAA)
-        function formatDate(dateString) {
-            if (!dateString) return '-';
-            try {
-                // Adiciona 'T00:00:00Z' para garantir que a data seja interpretada como UTC, evitando problemas de fuso horário
-                const date = new Date(dateString.includes('T') ? dateString : dateString + 'T00:00:00Z');
-                return date.toLocaleDateString('pt-BR', {timeZone: 'UTC'});
-            } catch {
-                return dateString;
-            }
-        }
-        
-        // Formatar data e hora (DD/MM/AAAA HH:MM:SS)
-        function formatDateTime(dateString) {
-            try {
-                const date = new Date(dateString);
-                return date.toLocaleString('pt-BR');
-            } catch {
-                return dateString;
-            }
-        }
-
-
-        // --- Funções de Modal Customizado (Substituem alert() e confirm()) ---
-
-        // Adiciona a estrutura básica do modal ao corpo do documento
-        function setupModalStructure() {
-            if (document.getElementById('custom-modal-overlay')) return;
-
-            // O CSS foi movido para o bloco <style> principal para melhor organização
-            
-            const modalHTML = `
-                <div id="custom-modal-overlay">
-                    <div id="custom-modal-content">
-                        <div id="custom-modal-header">
-                            <h3 id="custom-modal-title">Alerta</h3>
-                            <button id="custom-modal-close">&times;</button>
+        <!-- MOVEMENT TAB -->
+        <div id="movement-tab" style="display:none;">
+            <div class="form-grid">
+                <!-- Saída -->
+                <div class="card-table">
+                    <h3>Registrar Saída (Checkout)</h3>
+                    <form id="checkout-form" style="margin-top: 1.5rem;">
+                        <div class="form-group">
+                            <label>Equipamento Disponível</label>
+                            <select id="co-equipment" required></select>
                         </div>
-                        <div id="custom-modal-body"></div>
-                        <div id="custom-modal-footer"></div>
-                    </div>
+                        <div class="form-group">
+                            <label>Colaborador / Destino</label>
+                            <input type="text" id="co-user" placeholder="Nome completo" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Data Limite de Retorno</label>
+                            <input type="date" id="co-deadline" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Liberar Equipamento</button>
+                    </form>
                 </div>
-            `;
-            document.body.insertAdjacentHTML('beforeend', modalHTML);
 
-            document.getElementById('custom-modal-close').addEventListener('click', hideCustomModal);
-            document.getElementById('custom-modal-overlay').addEventListener('click', (e) => {
-                // Apenas fecha se clicar no overlay, não no conteúdo do modal
-                if (e.target.id === 'custom-modal-overlay') {
-                    hideCustomModal();
-                }
-            });
-        }
+                <!-- Entrada -->
+                <div class="card-table">
+                    <h3>Registrar Retorno (Check-in)</h3>
+                    <form id="checkin-form" style="margin-top: 1.5rem;">
+                        <div class="form-group">
+                            <label>Equipamento em Uso</label>
+                            <select id="ci-equipment" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Condição no Retorno</label>
+                            <select id="ci-condition">
+                                <option value="Excelente">Excelente</option>
+                                <option value="Boa">Boa</option>
+                                <option value="Necessita Reparo">Necessita Reparo</option>
+                                <option value="Danificado">Danificado</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%; background: var(--success);">Confirmar Recebimento</button>
+                    </form>
+                </div>
+            </div>
+        </div>
 
-        // Função para mostrar o modal
-        function showCustomModal(bodyContent, title = 'Alerta', footerContent = '') {
-            setupModalStructure();
-            document.getElementById('custom-modal-title').textContent = title;
-            document.getElementById('custom-modal-body').innerHTML = bodyContent;
-            document.getElementById('custom-modal-footer').innerHTML = footerContent;
-            const overlay = document.getElementById('custom-modal-overlay');
-            overlay.classList.add('visible');
-            overlay.style.display = 'flex';
-        }
+        <!-- HISTORY TAB -->
+        <div id="history-tab" style="display:none;">
+            <div class="card-table">
+                <h3>Log de Atividades do Sistema</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Ativo</th>
+                                <th>Evento</th>
+                                <th>Agente</th>
+                                <th>Notas</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
 
-        // Função para esconder o modal
-        function hideCustomModal() {
-            const overlay = document.getElementById('custom-modal-overlay');
-            if (overlay) {
-                overlay.classList.remove('visible');
-                // Pequeno delay para a animação
-                setTimeout(() => {
-                    overlay.style.display = 'none';
-                    document.getElementById('custom-modal-footer').innerHTML = ''; // Limpa botões de confirmação
-                }, 300); 
-            }
-        }
+<!-- Modal para Adicionar/Editar -->
+<div id="modal-overlay">
+    <div id="modal-card">
+        <h3 id="modal-title" style="margin-bottom: 1.5rem;">Novo Ativo de TI</h3>
+        <form id="equipment-form">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Tipo</label>
+                    <select id="eq-type" required>
+                        <option value="Notebook">Notebook</option>
+                        <option value="Monitor">Monitor</option>
+                        <option value="Smartphone">Smartphone</option>
+                        <option value="Desktop">Desktop</option>
+                        <option value="Periférico">Periférico</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Modelo</label>
+                    <input type="text" id="eq-model" required>
+                </div>
+                <div class="form-group full-width">
+                    <label>Número de Série</label>
+                    <input type="text" id="eq-serial" required>
+                </div>
+            </div>
+            <div style="display:flex; gap: 10px; margin-top: 2rem;">
+                <button type="button" class="btn" style="flex:1; background: var(--border);" onclick="closeModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary" style="flex:2;">Salvar no Sistema</button>
+            </div>
+        </form>
+    </div>
+</div>
 
-        // Alerta customizado (substitui alert())
-        function showCustomAlert(message, title = 'Notificação do Sistema') {
-            const footer = `<button onclick="hideCustomModal()" class="btn-success">OK</button>`;
-            showCustomModal(`<p>${message}</p>`, title, footer);
-        }
+<script>
+    // Gerenciamento de Estado (Persistência em Memória)
+    let assets = JSON.parse(localStorage.getItem('erp_assets')) || [];
+    let logs = JSON.parse(localStorage.getItem('erp_logs')) || [];
 
-        // Confirmação customizada (substitui confirm())
-        function showCustomConfirmation(message, title, callback) {
-            const confirmBtn = `<button class="btn-success" onclick="executeAndHide(true)">Confirmar</button>`;
-            const cancelBtn = `<button class="btn-secondary" onclick="executeAndHide(false)">Cancelar</button>`;
-            
-            showCustomModal(message, title, cancelBtn + confirmBtn);
+    // Inicialização
+    window.onload = () => {
+        document.getElementById('current-date').innerText = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'full' }).format(new Date());
+        refreshUI();
+    };
 
-            // Função auxiliar para executar o callback e esconder o modal
-            window.executeAndHide = function(confirmed) {
-                if (confirmed) {
-                    callback();
-                }
-                // Limpa a função global e esconde o modal
-                delete window.executeAndHide;
-                hideCustomModal();
-            };
-        }
+    function saveData() {
+        localStorage.setItem('erp_assets', JSON.stringify(assets));
+        localStorage.setItem('erp_logs', JSON.stringify(logs));
+        refreshUI();
+    }
 
-        // Chama a configuração do modal após o DOM carregar
-        document.addEventListener('DOMContentLoaded', setupModalStructure);
+    // Navegação entre abas
+    function switchTab(tabName) {
+        const tabs = ['dashboard', 'inventory', 'movement', 'history'];
+        tabs.forEach(t => {
+            document.getElementById(`${t}-tab`).style.display = t === tabName ? 'block' : 'none';
+        });
 
-        // --- Fim das Funções de Modal Customizado ---
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+            if(item.innerText.toLowerCase().includes(tabName.substring(0,3))) item.classList.add('active');
+        });
+
+        document.getElementById('view-title').innerText = tabName.charAt(0).toUpperCase() + tabName.slice(1);
+    }
+
+    // CRUD e Lógica de Negócio
+    function refreshUI() {
+        renderDashboard();
+        renderInventory();
+        renderHistory();
+        updateStats();
+        populateSelects();
+    }
+
+    function updateStats() {
+        document.getElementById('stat-total').innerText = assets.length;
+        document.getElementById('stat-in-use').innerText = assets.filter(a => a.status === 'Em Uso').length;
+        document.getElementById('stat-maintenance').innerText = assets.filter(a => a.status === 'Manutenção').length;
         
-    </script>
+        const overdueCount = assets.filter(a => a.deadline && new Date(a.deadline) < new Date() && a.status === 'Em Uso').length;
+        document.getElementById('stat-overdue').innerText = overdueCount;
+    }
+
+    function renderDashboard() {
+        const body = document.getElementById('dashboard-body');
+        body.innerHTML = '';
+        assets.slice(-5).reverse().forEach(a => {
+            body.innerHTML += `
+                <tr>
+                    <td><span style="font-family: monospace; color: var(--primary)">#${a.id.substring(0,6)}</span></td>
+                    <td>${a.type} ${a.model}</td>
+                    <td>${a.serial}</td>
+                    <td><span class="badge ${getStatusClass(a.status)}">${a.status}</span></td>
+                    <td>${a.user || 'Estoque Central'}</td>
+                </tr>
+            `;
+        });
+    }
+
+    function renderInventory(filter = '') {
+        const body = document.getElementById('inventory-body');
+        body.innerHTML = '';
+        
+        const filtered = assets.filter(a => 
+            a.serial.toLowerCase().includes(filter.toLowerCase()) || 
+            a.model.toLowerCase().includes(filter.toLowerCase()) ||
+            (a.user && a.user.toLowerCase().includes(filter.toLowerCase()))
+        );
+
+        filtered.forEach(a => {
+            body.innerHTML += `
+                <tr>
+                    <td>${a.id.substring(0,8)}</td>
+                    <td><b>${a.type}</b><br><small>${a.model}</small></td>
+                    <td><code style="color: var(--primary)">${a.serial}</code></td>
+                    <td><span class="badge ${getStatusClass(a.status)}">${a.status}</span></td>
+                    <td>${a.condition}</td>
+                    <td>
+                        <button class="btn" style="padding: 5px 10px; font-size: 0.7rem; background: var(--border)" onclick="deleteAsset('${a.id}')">Excluir</button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    function renderHistory() {
+        const body = document.getElementById('history-body');
+        body.innerHTML = '';
+        logs.slice().reverse().forEach(l => {
+            body.innerHTML += `
+                <tr>
+                    <td style="font-size: 0.8rem; color: var(--text-dim)">${new Date(l.date).toLocaleString()}</td>
+                    <td>${l.assetId.substring(0,8)}</td>
+                    <td><span class="badge badge-info">${l.event}</span></td>
+                    <td>${l.agent}</td>
+                    <td style="font-size: 0.8rem">${l.notes}</td>
+                </tr>
+            `;
+        });
+    }
+
+    function getStatusClass(status) {
+        switch(status) {
+            case 'Disponível': return 'badge-success';
+            case 'Em Uso': return 'badge-info';
+            case 'Manutenção': return 'badge-warning';
+            default: return '';
+        }
+    }
+
+    // Formulários
+    document.getElementById('equipment-form').onsubmit = (e) => {
+        e.preventDefault();
+        const newAsset = {
+            id: 'ASSET-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+            type: document.getElementById('eq-type').value,
+            model: document.getElementById('eq-model').value,
+            serial: document.getElementById('eq-serial').value,
+            status: 'Disponível',
+            condition: 'Novo',
+            user: '',
+            deadline: ''
+        };
+        assets.push(newAsset);
+        addLog(newAsset.id, 'Cadastro', 'Admin', 'Entrada de novo ativo no inventário');
+        saveData();
+        closeModal();
+        e.target.reset();
+    };
+
+    document.getElementById('checkout-form').onsubmit = (e) => {
+        e.preventDefault();
+        const id = document.getElementById('co-equipment').value;
+        const user = document.getElementById('co-user').value;
+        const deadline = document.getElementById('co-deadline').value;
+        
+        const asset = assets.find(a => a.id === id);
+        asset.status = 'Em Uso';
+        asset.user = user;
+        asset.deadline = deadline;
+        
+        addLog(id, 'Checkout', user, `Equipamento cedido com prazo até ${deadline}`);
+        saveData();
+        e.target.reset();
+    };
+
+    document.getElementById('checkin-form').onsubmit = (e) => {
+        e.preventDefault();
+        const id = document.getElementById('ci-equipment').value;
+        const cond = document.getElementById('ci-condition').value;
+        
+        const asset = assets.find(a => a.id === id);
+        const oldUser = asset.user;
+        asset.status = 'Disponível';
+        asset.user = '';
+        asset.deadline = '';
+        asset.condition = cond;
+
+        if(cond === 'Necessita Reparo') asset.status = 'Manutenção';
+        
+        addLog(id, 'Check-in', oldUser, `Retorno processado. Condição: ${cond}`);
+        saveData();
+        e.target.reset();
+    };
+
+    function addLog(assetId, event, agent, notes) {
+        logs.push({ date: new Date().toISOString(), assetId, event, agent, notes });
+    }
+
+    function deleteAsset(id) {
+        if(confirm('Deseja realmente remover este ativo?')) {
+            assets = assets.filter(a => a.id !== id);
+            saveData();
+        }
+    }
+
+    function populateSelects() {
+        const coSel = document.getElementById('co-equipment');
+        const ciSel = document.getElementById('ci-equipment');
+        
+        coSel.innerHTML = '<option value="">Selecionar Ativo...</option>';
+        ciSel.innerHTML = '<option value="">Selecionar Ativo...</option>';
+
+        assets.forEach(a => {
+            if(a.status === 'Disponível') {
+                coSel.innerHTML += `<option value="${a.id}">${a.serial} - ${a.model}</option>`;
+            } else if(a.status === 'Em Uso') {
+                ciSel.innerHTML += `<option value="${a.id}">${a.user} | ${a.serial}</option>`;
+            }
+        });
+    }
+
+    function handleSearch(val) {
+        renderInventory(val);
+    }
+
+    // UI Helpers
+    function openAddModal() { document.getElementById('modal-overlay').style.display = 'flex'; }
+    function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+
+    function exportInventory() {
+        let csv = "ID,Tipo,Modelo,Serie,Status,Responsavel\n";
+        assets.forEach(a => {
+            csv += `${a.id},${a.type},${a.model},${a.serial},${a.status},${a.user || 'ESTOQUE'}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.setAttribute('href', url);
+        a.setAttribute('download', 'inventario_logix.csv');
+        a.click();
+    }
+</script>
+
 </body>
 </html>
-
-
 
